@@ -16,10 +16,16 @@ version or commit, Windows version, Codex CLI version, and minimal steps.
 
 ## Reporting channel
 
-A formal private security reporting channel has not been established yet. Do
-not disclose a suspected vulnerability publicly until the project provides a
-private channel. This placeholder intentionally does not invent an email
-address or response-time promise.
+GitHub Private Vulnerability Reporting is enabled for this repository. Use the
+repository Security page and select
+[Report a vulnerability](https://github.com/hejin368/quackquota/security/advisories/new)
+to send a private report to the maintainers.
+
+Do not report a suspected vulnerability through a public issue. Ordinary,
+non-security bugs can continue to use the repository issue templates. Never
+include tokens, cookies, API keys, `auth.json`, or unredacted logs in either
+channel. The project does not publish a private email address or response-time
+promise.
 
 ## Trust boundaries and known risks
 

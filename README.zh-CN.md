@@ -12,9 +12,9 @@ Codex 动态额度窗口。它是独立的非官方项目；支持 Codex 不代�
 ## 当前状态
 
 - 内部开发基线已完成并标记为 `v0.0.0-overlay-baseline`。
-- 尚无公开安装包、Release 或公开的 QuackQuota 仓库；计划 slug 为
-  `quackquota`。
-- 当前是仅面向 Windows 的早期开发软件，不是 OpenAI 官方产品。
+- 源代码仓库已在 [hejin368/quackquota](.) 公开；目前仍无公开安装包、
+  Release 或面向普通用户的受支持下载。
+- 当前是仅面向 Windows 的早期 Alpha 前开发软件，不是 OpenAI 官方产品。
 
 ## 已完成能力
 
@@ -71,8 +71,9 @@ cargo test --manifest-path apps/desktop-tauri/src-tauri/Cargo.toml
 
 ## 反馈与贡献
 
-请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。GitHub Issue 启用后，请使用现有
-模板，并只提供脱敏后的 Windows 验证信息。
+请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。普通 Bug 请使用现有 GitHub
+Issue 模板，并只提供脱敏后的 Windows 验证信息。安全漏洞请使用
+[SECURITY.md](SECURITY.md) 中的私密渠道，不要发布到公开 Issue。
 
 ## 上游、许可与商标
 

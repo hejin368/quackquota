@@ -13,9 +13,10 @@ other historical translations are explicitly marked unmaintained.
 ## Project status
 
 - The internal baseline is complete and tagged `v0.0.0-overlay-baseline`.
-- No public installer, release package, or public QuackQuota repository exists
-  yet. The planned repository slug is `quackquota`.
-- This is early Windows-only development software, not an OpenAI product.
+- The source repository is public at [hejin368/quackquota](.). There is no
+  public installer, release package, or supported end-user download yet.
+- This is early pre-Alpha, Windows-only development software, not an OpenAI
+  product.
 
 ## Current capabilities
 
@@ -77,8 +78,10 @@ as a supported release artifact.
 
 ## Feedback and contributions
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md). When GitHub issue tracking is enabled,
-use the provided templates and include only redacted Windows validation details.
+Read [CONTRIBUTING.md](CONTRIBUTING.md). Use the provided GitHub issue templates
+for ordinary bugs and include only redacted Windows validation details. Report
+security vulnerabilities through the private channel in
+[SECURITY.md](SECURITY.md), not a public issue.
 
 ## Upstream, license, and marks
 

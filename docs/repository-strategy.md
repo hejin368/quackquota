@@ -2,17 +2,16 @@
 
 ## Current direction
 
-QuackQuota is planned as an independent derived-project repository, not as a
-long-term UI-only fork of Win-CodexBar. The confirmed public display name is
-`QuackQuota`; the planned GitHub repository slug is `quackquota`.
+QuackQuota is an independent derived-project repository, not a long-term
+UI-only fork of Win-CodexBar. The public display name is `QuackQuota`; the
+public GitHub repository is `hejin368/quackquota`.
 
 ## History and remotes
 
 - Preserve the complete existing Git history.
-- A future public `origin` is planned to be the independent QuackQuota
-  repository. It has not been created in this phase.
-- The current Win-CodexBar repository remains the planned upstream reference.
-- This phase changes neither remote and does not push.
+- `origin` points to the independent `hejin368/quackquota` repository.
+- `upstream` points to `Finesssee/Win-CodexBar`.
+- Local recovery refs under `refs/backup/` are never pushed.
 
 ## Upstream policy
 
@@ -21,8 +20,9 @@ upstream-sync workflow. Upstream UI, branding, and product-direction changes
 are never merged automatically. Every sync must use a dedicated branch, review
 affected surfaces, and pass the complete validation matrix.
 
-## Public-push gate
+## Public repository launch
 
-Before the first public push, create the authorized destination repository,
-confirm contributor and security-reporting channels, complete the manual
-Windows branding check, and review `docs/branding-audit.md`.
+The authorized destination repository exists, GitHub Private Vulnerability
+Reporting is enabled, and the scoped Windows branding check is complete. The
+first public push remains gated on the complete automated checks and history
+audit documented for the launch task.

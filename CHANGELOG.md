@@ -4,10 +4,12 @@
 
 ### Branding and documentation
 
-- Adopt QuackQuota as the public product name and `quackquota` as the planned
-  repository slug before the first public push.
+- Adopt QuackQuota as the public product name and establish the public
+  `hejin368/quackquota` repository before the first public push.
 - Establish contribution guidance, privacy and security policies, upstream-sync
   process, historical-translation notices, and GitHub collaboration templates.
+- Enable GitHub Private Vulnerability Reporting and finalize the public
+  repository and security-reporting documentation.
 
 ## [v0.0.0-overlay-baseline] - internal development baseline
 
