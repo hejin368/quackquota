@@ -1,0 +1,26 @@
+# Branding audit
+
+This audit records decisions required before the first public push. It does not
+rename internal identifiers in this phase.
+
+| Item                                                                                                        | Required timing                                             | Current decision                                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Public display name                                                                                         | Before first public push                                    | Confirm the working name `Codex Duck Overlay`.                                                                                   |
+| GitHub repository slug                                                                                      | Before first public push                                    | Choose and reserve a final slug.                                                                                                 |
+| Root README files                                                                                           | Before first public push                                    | `README.md` and `README.zh-CN.md` are updated in this phase.                                                                     |
+| Additional localized READMEs                                                                                | Before first public push                                    | Update, remove, or explicitly mark `README.zh-TW.md`, `README.ja-JP.md`, `README.ko-KR.md`, and `README.es-MX.md` as historical. |
+| Rust and packaging documentation                                                                            | Before publishing user-facing build guidance                | Review `rust/README.md` and packaging references that retain CodexBar terminology.                                               |
+| Cargo package/crate name                                                                                    | Before v0.1 release                                         | Internal `codexbar` may remain temporarily.                                                                                      |
+| npm package name                                                                                            | Before v0.1 release if published                            | Current package is private.                                                                                                      |
+| Tauri product name and identifier                                                                           | Before v0.1 release                                         | Currently CodexBar Desktop values; do not change in this phase.                                                                  |
+| Executable name                                                                                             | Before v0.1 release                                         | Current internal name may remain temporarily.                                                                                    |
+| Window, tray, and Settings labels                                                                           | Before first public push where user-visible                 | Audit after final display name is chosen.                                                                                        |
+| Temporary blue code icon                                                                                    | Before v0.1 release                                         | Replace only through the documented canonical resource path.                                                                     |
+| Mascot icon                                                                                                 | Before v0.1 release                                         | Not implemented yet.                                                                                                             |
+| Existing CodexBar references in source, Tauri config, Cargo metadata, packaging, historical docs, and tests | Internal symbols may remain; user-visible items need review | Do not bulk rename.                                                                                                              |
+| Original CodexBar and Win-CodexBar attribution                                                              | Must not be removed                                         | Preserve LICENSE, NOTICE, and retained Git history.                                                                              |
+
+The current search inventory includes active Tauri configuration, package and
+Cargo metadata, source symbols, packaging scripts, historical localized
+READMEs, changelogs, and docs. The public-first review must distinguish
+user-visible branding from retained upstream history and legal attribution.

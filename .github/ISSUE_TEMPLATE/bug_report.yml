@@ -1,5 +1,5 @@
 name: Bug report
-description: Report something broken in Win-CodexBar.
+description: Report a reproducible Codex Duck Overlay problem.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -16,8 +16,38 @@ body:
     id: summary
     attributes:
       label: What happened?
-      description: Describe the bug and the behavior you expected instead.
-      placeholder: The tray panel shows...
+      description: Give a short summary of the observed problem.
+      placeholder: The Codex Overlay shows...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-result
+    attributes:
+      label: Actual result
+      description: What did the app do?
+      placeholder: Describe the observed behavior without credentials or private paths.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: Expected result
+      description: What did you expect to happen instead?
+      placeholder: Describe the expected behavior.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Does it reproduce consistently?
+      options:
+        - Every time
+        - Sometimes
+        - Only once
+        - I have not tried again
     validations:
       required: true
 
@@ -27,13 +57,12 @@ body:
       label: Affected area
       description: Select every surface that seems relevant.
       options:
-        - label: Tray panel
+        - label: Codex Overlay
         - label: Settings UI
         - label: Config file / settings persistence
-        - label: CLI
-        - label: Provider-specific behavior
-        - label: Installer / release packaging
-        - label: Startup / background behavior
+        - label: App Server or Legacy quota path
+        - label: Proxy or network behavior
+        - label: Startup, tray, or window behavior
         - label: Other
 
   - type: textarea
@@ -52,7 +81,7 @@ body:
     id: logs
     attributes:
       label: Logs, screenshots, or recordings
-      description: Add logs, screenshots, CUA proof, or a short recording if relevant. Do not paste secrets, tokens, cookies, or API keys.
+      description: Add redacted logs or screenshots if relevant. Do not paste tokens, cookies, API keys, auth.json content, complete logs, or private account details.
       render: text
 
   - type: input
@@ -60,13 +89,43 @@ body:
     attributes:
       label: App version
       description: Version, commit, or installer used.
-      placeholder: v0.33.3
+      placeholder: commit or future release version
 
   - type: input
     id: windows-version
     attributes:
       label: Windows version
       placeholder: Windows 11 24H2
+
+  - type: input
+    id: codex-cli-version
+    attributes:
+      label: Codex CLI version
+
+  - type: input
+    id: display-setup
+    attributes:
+      label: DPI and display count
+      placeholder: 125%, two displays
+
+  - type: dropdown
+    id: quota-source
+    attributes:
+      label: Quota source
+      options:
+        - App Server
+        - Legacy fallback
+        - Unknown
+
+  - type: dropdown
+    id: proxy-mode
+    attributes:
+      label: Proxy mode
+      options:
+        - Direct
+        - Environment proxy
+        - Manual proxy
+        - Unknown
 
   - type: textarea
     id: additional-context

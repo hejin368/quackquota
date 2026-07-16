@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+### Documentation
+
+- Establish the open-source project foundation, contribution guidance, privacy
+  and security policies, upstream-sync process, and GitHub collaboration
+  templates for the Codex Duck Overlay working name.
+
+## [v0.0.0-overlay-baseline] - internal development baseline
+
+### Added
+
+- Dynamic Codex quota windows with the Codex App Server primary path and a
+  compatibility-only Legacy fallback.
+- Remaining-quota display, reset credits, proxy support, window recovery, and
+  startup display policies.
+- Converged tray and window surfaces, a unified temporary icon, non-blocking
+  settings persistence, tests, and security documentation.
+
+This tag is an internal development baseline, not a public user release.
 ## [Windows] 0.42.0 - 2026-07-12
 
 ### Added

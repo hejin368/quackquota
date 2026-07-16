@@ -65,6 +65,11 @@ nul
 !/docs/security-review.md
 !/docs/mascot-architecture.md
 !/docs/windows-icon.md
+!/docs/repository-strategy.md
+!/docs/upstream-sync.md
+!/docs/roadmap.md
+!/docs/project-status.md
+!/docs/branding-audit.md
 /scripts/*
 /docs/ui-parity-workflow.md
 /scripts/crop_vm_preferences_proof.sh

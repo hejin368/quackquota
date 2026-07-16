@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an improvement for Win-CodexBar.
+description: Suggest an improvement for Codex Duck Overlay.
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
@@ -36,13 +36,12 @@ body:
       label: Affected area
       description: Select every surface that should change or needs consideration.
       options:
-        - label: Tray panel
+        - label: Codex Overlay
         - label: Settings UI
         - label: Config file / settings persistence
-        - label: CLI
-        - label: Provider-specific behavior
-        - label: Installer / release packaging
-        - label: Startup / background behavior
+        - label: App Server or Legacy quota path
+        - label: Proxy or network behavior
+        - label: Startup, tray, or window behavior
         - label: Documentation
         - label: Other
 
@@ -57,6 +56,15 @@ body:
     attributes:
       label: Visual details
       description: Add mockups, screenshots, recordings, or examples if this affects UI/tray behavior.
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact
+      options:
+        - label: This may affect security or privacy.
+        - label: This may affect resource use or UI complexity.
+        - label: I am willing to help test the proposal on Windows.
 
   - type: textarea
     id: additional-context
