@@ -1,4 +1,4 @@
-# Codex Overlay v0 Windows 手动验收清单
+# QuackQuota v0 Windows 手动验收清单
 
 本文档用于 `v0.0.0-overlay-baseline` 之前的真实 Windows 桌面验收。自动化测试和构建通过不代表本清单通过；每一项都需要在目标 Windows 环境中记录结果。
 
@@ -27,7 +27,7 @@
 - [ ] Codex CLI 版本（若已安装）：`________________`
 - [ ] 显示器数量、分辨率和缩放：`________________`
 - [ ] 通过 `scripts/dev.ps1` 或 Tauri debug 构建启动，未直接运行指向 Vite dev URL 的裸 Cargo 构建。
-- [ ] 测试前确认没有旧的 CodexBar/Codex Duck Overlay 进程残留。
+- [ ] 测试前确认没有旧的 QuackQuota 进程残留；若需按内部可执行名检查，使用 `codexbar-desktop-tauri.exe`。
 
 ## A. 安装与认证矩阵
 
@@ -175,7 +175,7 @@
 ### D6. 公开 Surface 收敛
 
 - [ ] 正常启动不显示原始主窗口、Dashboard 或任务栏入口。
-- [ ] 托盘左键只切换 Codex Overlay；连续点击不会创建多个窗口。
+- [ ] 托盘左键只切换 QuackQuota；连续点击不会创建多个窗口。
 - [ ] 托盘右键只包含“显示/隐藏 Codex 悬浮窗”“设置”“关于”“退出”，没有 Dashboard、仪表盘、Provider、Float Bar 或全局刷新入口。
 - [ ] “设置”和“关于”复用同一个 Settings 窗口；连续点击只聚焦现有窗口。
 - [ ] 关闭 Settings 只隐藏窗口，不退出 Overlay 或托盘程序；再次打开可正常恢复。
@@ -242,7 +242,7 @@
 
 ## Baseline acceptance record (Windows, 2026-07)
 
-The internal Codex Overlay baseline completed real Windows desktop acceptance.
+The internal QuackQuota baseline completed real Windows desktop acceptance.
 This record intentionally contains no user directory, account identity, proxy
 endpoint, token, cookie, authorization header, or authentication-file content.
 
@@ -266,7 +266,7 @@ endpoint, token, cookie, authorization header, or authentication-file content.
 - The three startup choices are fully visible and selectable; remember-last,
   always-show, and always-hide each persist across restart.
 - The legacy main window no longer opens normally, duplicate dashboard entry
-  points are removed, and left-clicking the tray icon toggles the Codex Overlay.
+  points are removed, and left-clicking the tray icon toggles QuackQuota.
 - Settings and Overlay remain single-instance surfaces. Window, taskbar, tray,
   and executable icons remain visually consistent during launch.
 - Settings persistence now provides non-blocking feedback. Saving does not

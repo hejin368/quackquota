@@ -813,7 +813,7 @@ mod tests {
 
         let (_, items) = native_menu_snapshot_for_settings(&providers, &settings, "tray");
 
-        assert!(items.iter().any(|item| item == "Codex オーバーレイを表示"));
+        assert!(items.iter().any(|item| item == "QuackQuota を表示"));
         assert!(items.iter().any(|item| item == "設定..."));
         assert!(items.iter().any(|item| item == "終了"));
         assert!(!items.iter().any(|item| item == "すべて更新"));
@@ -824,7 +824,7 @@ mod tests {
     #[test]
     fn about_path_snapshot_clears_on_failure() {
         let _guard = MENU_LOCK.lock().unwrap();
-        set_menu_snapshot(Some("tray".into()), vec!["About CodexBar".into()]);
+        set_menu_snapshot(Some("tray".into()), vec!["About QuackQuota".into()]);
 
         let result = persist_about_path_snapshot(Err("boom".into()));
 

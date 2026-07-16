@@ -1,4 +1,4 @@
-# Project status
+# QuackQuota project status
 
 ## Internal baseline
 
@@ -9,12 +9,16 @@
   tray convergence, temporary unified icon, and non-blocking settings saves.
 - Real Windows acceptance passed for the scoped core workflow.
 
+## Branding and publication status
+
+- Public name: `QuackQuota`.
+- Planned repository slug: `quackquota`.
+- No public QuackQuota remote repository or release has been created.
+- The temporary blue code icon remains in use until a later mascot asset phase.
+
 ## Alpha work remaining
 
 - Broader Windows, device, DPI, and monitor-topology coverage.
 - Legacy fallback compatibility matrix.
 - Installation, upgrade, uninstall, long-running, sleep/resume, code-signing,
   and security-software validation.
-
-No public release has been made. The final project name is not confirmed, and
-no new public remote repository has been created.

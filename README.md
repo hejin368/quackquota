@@ -1,73 +1,58 @@
-# Codex Duck Overlay
+# QuackQuota
 
-> Working name — the final project name and repository slug will be confirmed
-> before the first public push.
+A lightweight Codex quota companion for Windows.
 
-Codex Duck Overlay is an early Windows-local desktop overlay for viewing Codex
-quota windows without opening a dashboard.
+QuackQuota is a Windows-local desktop companion that keeps Codex quota windows
+visible without opening a dashboard. It is an independent, non-official
+project; Codex support does not imply OpenAI endorsement.
+
+The maintained project documentation is available in English and Simplified
+Chinese: [README.md](README.md) and [README.zh-CN.md](README.zh-CN.md). The
+other historical translations are explicitly marked unmaintained.
 
 ## Project status
 
 - The internal baseline is complete and tagged `v0.0.0-overlay-baseline`.
-- No public installer or release package is available yet.
-- This is early development software, not an OpenAI product.
-
-Screenshot and GIF placeholders will be added only when genuine, reviewable
-assets are ready.
+- No public installer, release package, or public QuackQuota repository exists
+  yet. The planned repository slug is `quackquota`.
+- This is early Windows-only development software, not an OpenAI product.
 
 ## Current capabilities
 
-- A Windows Codex quota overlay with dynamic quota windows.
+- A Windows overlay with dynamic Codex quota windows.
 - Official Codex App Server as the preferred quota path.
 - A compatibility-only Legacy fallback with explicit source labeling.
-- Remaining quota, reset time, and reset-credit display.
-- Manual HTTP/HTTPS proxy support, environment-proxy support, and safe
-  connection error categories.
-- Overlay position persistence with DPI-aware visible-area recovery.
-- Tray access, single-instance Settings and Overlay windows, and three startup
-  display policies.
+- Remaining quota, reset time, reset-credit display, proxy support, and safe
+  connection-error categories.
+- DPI-aware overlay position recovery, tray access, single-instance Settings
+  and Overlay windows, and three startup display policies.
 
-## Requirements and current validation scope
+## Requirements and validation scope
 
 - Windows 10 or Windows 11.
 - The official Codex CLI installed and signed in.
-- The current real-device validation scope is limited. It does not claim
+- Current real-device validation is intentionally scoped; it does not claim
   coverage of every Windows version, device, display topology, or DPI setup.
 
-## How it is used today
+## Privacy and security
 
-1. Sign in with the official Codex CLI.
-2. Start the local Windows application.
-3. Use the tray icon to show or hide the Codex Overlay.
-4. Refresh the overlay when needed; the preferred source is Codex App Server.
-5. Use Settings to configure proxy behavior, startup display policy, and
-   overlay position recovery.
-
-## Privacy and security summary
-
-- This project does not operate its own user accounts or cloud service.
+- QuackQuota has no project-operated user accounts or cloud service.
 - It does not upload Codex conversations, credentials, or telemetry to project
   maintainers.
-- It communicates with official Codex/OpenAI services when reading quota data.
-- App Server is preferred; Legacy quota access is a compatibility fallback.
+- It reads quota data through official Codex/OpenAI services where required;
+  App Server is preferred and the Legacy path is compatibility-only.
 - Proxy URLs with embedded usernames or passwords are rejected.
 
 Read [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md), and
 [docs/security-review.md](docs/security-review.md) before testing a new path.
 
-## Known limitations
-
-- This is a non-official third-party project. It is not supported, endorsed, or
-  operated by OpenAI.
-- Legacy quota interfaces may change without notice.
-- There is no public installer, automatic update path, or code-signing claim
-  for this baseline.
-- macOS and Linux are not supported by this project phase.
-
 ## Roadmap
 
-See [docs/roadmap.md](docs/roadmap.md). The roadmap is not a delivery-date
-commitment.
+The current product remains a quota overlay. A later mascot phase may add a
+low-frame-rate duck and let users give their local duck a name; that name will
+remain local-only and will not be added to Settings until a mascot surface
+exists. See [docs/roadmap.md](docs/roadmap.md) and
+[docs/mascot-architecture.md](docs/mascot-architecture.md).
 
 ## Build and development
 
@@ -87,25 +72,21 @@ cargo test --manifest-path rust/Cargo.toml
 cargo test --manifest-path apps/desktop-tauri/src-tauri/Cargo.toml
 ```
 
-The repository has no public installation instructions yet. Do not treat a
-debug build as a supported release artifact.
+There are no public installation instructions yet. Do not treat a debug build
+as a supported release artifact.
 
 ## Feedback and contributions
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md). When GitHub issue tracking is enabled,
-use the provided issue templates and include redacted Windows validation details.
+use the provided templates and include only redacted Windows validation details.
 
-## Upstream and acknowledgements
+## Upstream, license, and marks
 
-This work preserves the Git history and MIT license of the original
-[CodexBar](https://github.com/steipete/CodexBar) project by Peter Steinberger,
-and the Windows/Tauri derivative Win-CodexBar. Current Codex Overlay work is a
-derived internal-development direction, not a claim of upstream affiliation.
+QuackQuota preserves the Git history and MIT license of the original
+[CodexBar](https://github.com/steipete/CodexBar) project by Peter Steinberger
+and the Windows/Tauri derivative Win-CodexBar. QuackQuota changes are derived
+work and do not claim authorship of upstream code or affiliation with OpenAI.
 
-See [NOTICE.md](NOTICE.md) and [docs/upstream-sync.md](docs/upstream-sync.md).
-
-## License and trademark notice
-
-This repository retains the existing [MIT License](LICENSE). OpenAI, ChatGPT,
-and Codex are trademarks of their respective owners. This project is not an
-official OpenAI tool.
+See [NOTICE.md](NOTICE.md), [docs/repository-strategy.md](docs/repository-strategy.md),
+and [docs/upstream-sync.md](docs/upstream-sync.md). OpenAI, ChatGPT, and Codex
+are trademarks of their respective owners.

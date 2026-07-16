@@ -784,7 +784,7 @@ impl RemoteSessionFetcher {
                     AgentSessionHostResult::failed(
                         host,
                         actionable_message(
-                            "Remote session response was not valid JSON; update CodexBar on the remote host",
+                            "Remote session response was not valid JSON; update QuackQuota on the remote host",
                             error,
                         ),
                     )

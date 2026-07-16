@@ -1,8 +1,11 @@
 # CodexBar for Windows
 
-A Windows port of [CodexBar](https://github.com/steipete/CodexBar) - a system tray application for monitoring AI provider usage limits.
+> **Historical and unmaintained document.** Refer to the maintained
+> [root README](../README.md) or [Simplified Chinese README](../README.zh-CN.md).
+> Do not use this file's installation, download, release, or configuration
+> guidance for QuackQuota.
 
-![CodexBar Windows](screenshots/tray-icon.png)
+A Windows port of [CodexBar](https://github.com/steipete/CodexBar) - a system tray application for monitoring AI provider usage limits.
 
 ## Features
 
@@ -179,8 +182,6 @@ codexbar -p claude
 ## Screenshots
 
 ### System Tray
-![Tray Icon](screenshots/tray-icon.png)
-
 The tray icon color indicates overall usage:
 - Green: 0-50% used
 - Yellow: 50-80% used
@@ -193,14 +194,8 @@ A badge appears in the corner for status issues:
 - Red badge: Major outage
 
 ### Main Panel
-![Main Panel](screenshots/main-panel.png)
-
 ### Settings
-![Settings](screenshots/settings.png)
-
 ### About
-![About](screenshots/about.png)
-
 ## Development
 
 ### Running Tests

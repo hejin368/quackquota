@@ -6,34 +6,10 @@ const tauriMocks = vi.hoisted(() => ({
   openExternalUrl: vi.fn(),
 }));
 
-const updateMocks = vi.hoisted(() => ({
-  checkNow: vi.fn(),
-  download: vi.fn(),
-  apply: vi.fn(),
-  dismiss: vi.fn(),
-  openRelease: vi.fn(),
-}));
-
 vi.mock("../../../lib/tauri", () => tauriMocks);
 vi.mock("../../../hooks/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),
 }));
-vi.mock("../../../hooks/useUpdateState", () => ({
-  useUpdateState: () => ({
-    updateState: {
-      status: "idle",
-      version: null,
-      error: null,
-      progress: null,
-      releaseUrl: null,
-      canDownload: false,
-      canApply: false,
-      lastCheckedAt: null,
-    },
-    ...updateMocks,
-  }),
-}));
-
 import AboutTab from "./AboutTab";
 import type { SettingsSnapshot } from "../../../types/bridge";
 
@@ -90,11 +66,11 @@ describe("AboutTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     tauriMocks.getAppInfo.mockResolvedValue({
-      name: "CodexBar",
+      name: "QuackQuota",
       version: "0.30.3",
       buildNumber: "dev",
       updateChannel: "stable",
-      tagline: "Keep agent limits in view.",
+      tagline: "A lightweight Codex quota companion for Windows",
     });
     tauriMocks.openExternalUrl.mockResolvedValue(undefined);
   });
@@ -102,22 +78,22 @@ describe("AboutTab", () => {
   it("opens about links through the Tauri URL bridge", async () => {
     render(<AboutTab settings={settings} set={vi.fn()} saving={false} />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "AboutLinkGitHub" }));
-    fireEvent.click(screen.getByRole("button", { name: "AboutLinkWebsite" }));
-    fireEvent.click(screen.getByRole("button", { name: "AboutLinkOriginalProject" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "AboutLinkOriginalProject" }),
+    );
 
-    expect(tauriMocks.openExternalUrl).toHaveBeenNthCalledWith(
-      1,
-      "https://github.com/Finesssee/Win-CodexBar",
-    );
-    expect(tauriMocks.openExternalUrl).toHaveBeenNthCalledWith(
-      2,
-      "https://codexbar.app",
-    );
-    expect(tauriMocks.openExternalUrl).toHaveBeenNthCalledWith(
-      3,
+    expect(tauriMocks.openExternalUrl).toHaveBeenCalledTimes(1);
+    expect(tauriMocks.openExternalUrl).toHaveBeenCalledWith(
       "https://github.com/steipete/CodexBar",
     );
+  });
+
+  it("renders the QuackQuota product identity and non-official notice", async () => {
+    render(<AboutTab settings={settings} set={vi.fn()} saving={false} />);
+
+    expect(await screen.findByText("QuackQuota")).toBeInTheDocument();
+    expect(screen.getByText("AboutNonOfficial")).toBeInTheDocument();
+    expect(screen.queryByText("AboutCheckForUpdates")).not.toBeInTheDocument();
   });
 
   it("shows a link error if the OS browser launch fails", async () => {
@@ -125,7 +101,9 @@ describe("AboutTab", () => {
 
     render(<AboutTab settings={settings} set={vi.fn()} saving={false} />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "AboutLinkWebsite" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "AboutLinkOriginalProject" }),
+    );
 
     await waitFor(() => {
       expect(screen.getByText("ErrorPrefix no browser")).toBeInTheDocument();

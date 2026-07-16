@@ -12,11 +12,12 @@ known as Win-CodexBar. Contributor attribution for that work remains in the
 retained Git history. This notice does not invent a separate copyright claim
 where the repository records are not specific.
 
-## Current Codex Overlay work
+## QuackQuota changes
 
-Codex Duck Overlay is the current working name for the Codex-focused overlay,
-dynamic quota, proxy, window-persistence, and documentation changes added on
-top of that history.
+QuackQuota is the name for the Codex-focused overlay, dynamic quota, proxy,
+window-persistence, branding, and documentation changes added on top of that
+history. These changes are derived work and do not transfer upstream copyright
+or attribution to QuackQuota.
 
 ## Independence and marks
 

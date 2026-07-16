@@ -570,6 +570,8 @@ locale_keys! {
     // About tab - render_about_tab
     AboutDescription,
     AboutDescriptionLine2,
+    AboutNonOfficial,
+    AboutAttribution,
     ViewOnGitHub,
     SubmitIssue,
     MaintainedBy,

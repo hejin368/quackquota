@@ -7,7 +7,7 @@ upstream sync.
 2. Review provider, security, and Windows-compatibility changes individually.
 3. Do not automatically merge upstream UI, branding, release, or product
    direction changes.
-4. Resolve conflicts with the local Codex Overlay architecture and security
+4. Resolve conflicts with the local QuackQuota architecture and security
    boundaries in mind.
 5. Run frontend, shared Rust, Tauri Rust, localization, and build checks.
 6. Perform targeted Windows manual validation for surface, tray, proxy, and

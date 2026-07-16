@@ -148,12 +148,7 @@ mod tests {
         );
         assert_eq!(
             proof_menu_items(&menu, "tray").unwrap(),
-            vec![
-                "Show Codex Overlay",
-                "Settings...",
-                "About CodexBar",
-                "Quit"
-            ]
+            vec!["Show QuackQuota", "Settings...", "About QuackQuota", "Quit"]
         );
     }
 
@@ -176,18 +171,18 @@ mod tests {
     fn overlay_menu_label_tracks_visibility() {
         let shown = build_tray_menu_with(false, Language::English);
         let hidden = build_tray_menu_with(true, Language::English);
-        assert_eq!(shown[0].label, "Show Codex Overlay");
-        assert_eq!(hidden[0].label, "Hide Codex Overlay");
+        assert_eq!(shown[0].label, "Show QuackQuota");
+        assert_eq!(hidden[0].label, "Hide QuackQuota");
     }
 
     #[test]
     fn public_menu_labels_follow_language() {
         let menu = build_tray_menu_with(false, Language::Japanese);
         let items = proof_menu_items(&menu, "tray").unwrap();
-        assert!(items.iter().any(|item| item == "Codex オーバーレイを表示"));
+        assert!(items.iter().any(|item| item == "QuackQuota を表示"));
         assert!(items.iter().any(|item| item == "設定..."));
         assert!(items.iter().any(|item| item == "終了"));
-        assert!(!items.iter().any(|item| item == "Show Codex Overlay"));
+        assert!(!items.iter().any(|item| item == "Show QuackQuota"));
     }
 
     #[test]

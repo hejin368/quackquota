@@ -1,6 +1,6 @@
 # Privacy
 
-Codex Duck Overlay is a local Windows desktop application. It does not operate
+QuackQuota is a local Windows desktop application. It does not operate
 its own user-account system or cloud service.
 
 ## Data handling

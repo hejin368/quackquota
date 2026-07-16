@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible Codex Duck Overlay problem.
+description: Report a reproducible QuackQuota problem.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -17,7 +17,7 @@ body:
     attributes:
       label: What happened?
       description: Give a short summary of the observed problem.
-      placeholder: The Codex Overlay shows...
+      placeholder: QuackQuota shows...
     validations:
       required: true
 
@@ -57,7 +57,7 @@ body:
       label: Affected area
       description: Select every surface that seems relevant.
       options:
-        - label: Codex Overlay
+        - label: QuackQuota overlay
         - label: Settings UI
         - label: Config file / settings persistence
         - label: App Server or Legacy quota path

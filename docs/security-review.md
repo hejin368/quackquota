@@ -1,4 +1,4 @@
-# Codex Overlay 安全审查基线
+# QuackQuota 安全审查基线
 
 本文档描述动态额度窗口版本的当前安全边界，不是安全认证或公开发布批准。审查过程中没有读取、复制或记录任何真实认证文件内容。
 
@@ -126,7 +126,7 @@ Rust 单元测试会序列化 DTO 并检查常见凭证字段不存在。前端�
 
 ## Baseline security confirmation (Windows, 2026-07)
 
-The following statements are confirmed for the internal Codex Overlay baseline.
+The following statements are confirmed for the internal QuackQuota baseline.
 This section deliberately contains no real proxy endpoint, user directory,
 email address, token, cookie, authorization header, or authentication-file
 content.

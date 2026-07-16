@@ -1,6 +1,6 @@
 //! Auto-start management for Windows
 //!
-//! Enables/disables CodexBar to start automatically when Windows boots
+//! Enables/disables QuackQuota to start automatically when Windows boots
 
 use clap::Args;
 
@@ -25,7 +25,7 @@ pub struct AutostartArgs {
 pub async fn run(args: AutostartArgs) -> anyhow::Result<()> {
     if args.enable {
         enable_autostart()?;
-        println!("Auto-start enabled. CodexBar will start when Windows boots.");
+        println!("Auto-start enabled. QuackQuota will start when Windows boots.");
     } else if args.disable {
         disable_autostart()?;
         println!("Auto-start disabled.");

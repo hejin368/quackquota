@@ -1,5 +1,9 @@
 # Win-CodexBar
 
+> **此歷史翻譯已過時且不再維護。** 請改以目前維護的
+> [English README](./README.md) 或 [簡體中文 README](./README.zh-CN.md) 為準；
+> 不要依此文件的安裝、下載或版本資訊操作。
+
 [English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文（臺灣）](./README.zh-TW.md) | [日本語](./README.ja-JP.md) | [한국어](./README.ko-KR.md) | [Español mexicano](./README.es-MX.md)
 
 [CodexBar](https://github.com/steipete/CodexBar) 的 Windows 移植版 —— 一個系統系統匣應用，讓你隨時掌握各個 AI 程式設計工具的用量額度。

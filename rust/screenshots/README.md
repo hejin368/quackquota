@@ -1,5 +1,8 @@
 # Screenshots
 
+> **Historical asset note.** Refer to the root README for current QuackQuota
+> documentation; this file does not provide current product or release guidance.
+
 Add screenshots of CodexBar Windows here:
 
 1. **tray-icon.png** - The system tray icon showing usage colors

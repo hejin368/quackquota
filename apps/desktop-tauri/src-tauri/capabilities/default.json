@@ -1,6 +1,6 @@
 {
   "identifier": "default",
-  "description": "Default permissions for the CodexBar desktop scaffold.",
+  "description": "Default permissions for the QuackQuota desktop shell.",
   "windows": ["main", "settings", "floatbar", "flyout", "codex-overlay"],
   "permissions": [
     "core:event:allow-listen",

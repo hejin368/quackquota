@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve the Windows-first, local-first Codex Overlay.
+Thanks for helping improve QuackQuota, a Windows-first, local-first Codex quota companion.
 Contributions are reviewed individually and are not guaranteed to be merged.
 
 ## Before you start

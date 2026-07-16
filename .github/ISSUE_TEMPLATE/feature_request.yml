@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an improvement for Codex Duck Overlay.
+description: Suggest an improvement for QuackQuota.
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
@@ -36,7 +36,7 @@ body:
       label: Affected area
       description: Select every surface that should change or needs consideration.
       options:
-        - label: Codex Overlay
+        - label: QuackQuota overlay
         - label: Settings UI
         - label: Config file / settings persistence
         - label: App Server or Legacy quota path

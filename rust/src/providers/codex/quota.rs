@@ -275,8 +275,8 @@ async fn fetch_from_app_server(
                 "method": "initialize",
                 "params": {
                     "clientInfo": {
-                        "name": "codex_duck_overlay",
-                        "title": "Codex Duck Overlay",
+                        "name": "quackquota",
+                        "title": "QuackQuota",
                         "version": env!("CARGO_PKG_VERSION")
                     }
                 }

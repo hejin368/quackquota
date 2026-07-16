@@ -33,6 +33,8 @@ mod tests {
         let about_tab = include_str!("../../src/surfaces/settings/tabs/AboutTab.tsx");
         assert!(config.contains("../../../rust/icons/icon.png"));
         assert!(config.contains("../../../rust/icons/icon.ico"));
+        assert!(config.contains("\"productName\": \"QuackQuota\""));
+        assert!(config.contains("\"title\": \"QuackQuota\""));
         assert!(!config.contains("about-icon.png"));
         assert!(!config.contains("CodexBar-app-icon.png"));
         assert!(about_tab.contains("../../../../../../rust/icons/icon.png"));

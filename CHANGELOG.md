@@ -2,11 +2,12 @@
 
 ## [Unreleased]
 
-### Documentation
+### Branding and documentation
 
-- Establish the open-source project foundation, contribution guidance, privacy
-  and security policies, upstream-sync process, and GitHub collaboration
-  templates for the Codex Duck Overlay working name.
+- Adopt QuackQuota as the public product name and `quackquota` as the planned
+  repository slug before the first public push.
+- Establish contribution guidance, privacy and security policies, upstream-sync
+  process, historical-translation notices, and GitHub collaboration templates.
 
 ## [v0.0.0-overlay-baseline] - internal development baseline
 

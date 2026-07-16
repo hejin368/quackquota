@@ -344,6 +344,8 @@ export const ALL_LOCALE_KEYS = [
   "AutoRefreshInterval",
   "AboutDescription",
   "AboutDescriptionLine2",
+  "AboutNonOfficial",
+  "AboutAttribution",
   "ViewOnGitHub",
   "SubmitIssue",
   "MaintainedBy",

@@ -1,5 +1,9 @@
 # Security policy
 
+QuackQuota is an independent, non-official Windows project. References to
+OpenAI, ChatGPT, or Codex describe compatibility only and do not imply
+endorsement.
+
 ## Scope
 
 Report security issues in the Windows desktop shell, local credential boundary,

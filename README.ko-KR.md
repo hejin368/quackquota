@@ -1,5 +1,9 @@
 # Win-CodexBar
 
+> **이 기록용 번역은 오래되었으며 더 이상 유지 관리되지 않습니다.** 현재는
+> [English README](./README.md) 또는 [Simplified Chinese README](./README.zh-CN.md)를
+> 참고하고, 이 파일의 설치·다운로드·버전 안내를 사용하지 마세요.
+
 [English](./README.md) | [简体中文](./README.zh-CN.md) | [繁體中文（臺灣）](./README.zh-TW.md) | [日本語](./README.ja-JP.md) | [한국어](./README.ko-KR.md) | [Español mexicano](./README.es-MX.md)
 
 Win-CodexBar는 여러 AI 코딩 도구의 사용량을 Windows 시스템 트레이에서 바로 확인할 수 있게 해 주는 데스크톱 앱입니다. [CodexBar](https://github.com/steipete/CodexBar)의 아이디어를 Tauri + React 데스크톱 셸과 공유 Rust 백엔드로 Windows에 맞게 포팅했습니다.

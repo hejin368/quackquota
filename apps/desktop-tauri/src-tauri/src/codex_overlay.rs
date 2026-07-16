@@ -276,7 +276,7 @@ pub fn show(app: &tauri::AppHandle) -> Result<(), String> {
     let (width, height) = initial_size();
     let url = WebviewUrl::App("index.html?window=codex-overlay".into());
     let builder = tauri::WebviewWindowBuilder::new(app, CODEX_OVERLAY_LABEL, url)
-        .title("Codex Overlay")
+        .title("QuackQuota")
         .inner_size(width, height)
         .decorations(false)
         .shadow(false)
