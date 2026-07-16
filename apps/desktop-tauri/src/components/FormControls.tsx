@@ -41,20 +41,26 @@ export function Select({
   options,
   onChange,
   disabled,
+  ariaLabel,
+  width,
 }: {
   value: string;
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
   disabled?: boolean;
+  ariaLabel?: string;
+  /** Override the compact auto-width when a setting needs a stable readable width. */
+  width?: number | string;
 }) {
   const selectedLabel = options.find((option) => option.value === value)?.label ?? value;
-  const width = Math.min(128, Math.max(48, Math.ceil(selectedLabel.length * 6.8) + 18));
+  const autoWidth = Math.min(128, Math.max(48, Math.ceil(selectedLabel.length * 6.8) + 18));
 
   return (
     <select
       className="select"
-      style={{ width }}
+      style={{ width: width ?? autoWidth }}
       value={value}
+      aria-label={ariaLabel}
       disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -129,14 +135,20 @@ export function Field({
   description,
   children,
   leading,
+  className,
 }: {
   label: string;
   description?: string;
   children: React.ReactNode;
   leading?: boolean;
+  className?: string;
 }) {
+  const classes = ["settings-field", leading ? "settings-field--leading" : "", className ?? ""]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={`settings-field${leading ? " settings-field--leading" : ""}`}>
+    <div className={classes}>
       {leading && <div className="settings-field__control">{children}</div>}
       <div className="settings-field__text">
         <span className="settings-field__label">{label}</span>

@@ -1,13 +1,11 @@
-//! Global keyboard shortcut registration for toggling the tray flyout.
+//! Global keyboard shortcut registration for toggling the Codex overlay.
 //!
 //! Reads the persisted `global_shortcut` setting (e.g. `"Ctrl+Shift+U"`)
 //! and registers it through the Tauri global-shortcut plugin. The shortcut
-//! toggles the dedicated tray flyout, matching a left-click on the tray icon.
+//! toggles the Codex overlay, matching a left-click on the tray icon.
 
 use tauri::AppHandle;
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
-
-use crate::shell;
 
 const KEY_ALIASES: &[(&str, Code)] = &[
     ("a", Code::KeyA),
@@ -104,12 +102,18 @@ fn parse_key(token: &str) -> Option<Code> {
         .find_map(|(alias, code)| (*alias == normalized).then_some(*code))
 }
 
-/// Build the Tauri global-shortcut plugin with the tray-flyout handler.
+/// Build the Tauri global-shortcut plugin with the Codex-overlay handler.
 pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
     tauri_plugin_global_shortcut::Builder::new()
         .with_handler(|app, _shortcut, event| {
-            if event.state == ShortcutState::Pressed {
-                shell::flyout_window::toggle_with_blur_consume(app, None);
+            if event.state == ShortcutState::Pressed
+                && let Err(error) = crate::codex_overlay::toggle(app)
+            {
+                tracing::warn!(
+                    target: "codexbar::codex_overlay",
+                    error = %codexbar::logging::safe_error_message(error),
+                    "failed to toggle Codex overlay from global shortcut"
+                );
             }
         })
         .build()

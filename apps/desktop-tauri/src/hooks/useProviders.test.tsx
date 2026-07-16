@@ -83,10 +83,35 @@ describe("useProviders", () => {
     expect(tauriMocks.refreshProviders).not.toHaveBeenCalled();
   });
 
+  it("waits for event subscriptions before the initial refresh", async () => {
+    const resolveListeners: Array<() => void> = [];
+    eventMocks.listen.mockImplementation(
+      () =>
+        new Promise<() => void>((resolve) => {
+          resolveListeners.push(() => resolve(() => {}));
+        }),
+    );
+
+    renderHook(() => useProviders());
+    await act(async () => {});
+
+    expect(tauriMocks.refreshProvidersIfStale).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveListeners.forEach((resolve) => resolve());
+    });
+
+    await waitFor(() => {
+      expect(tauriMocks.refreshProvidersIfStale).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it("can defer the stale-aware refresh on mount", async () => {
     vi.useFakeTimers();
     try {
       renderHook(() => useProviders({ initialRefreshDelayMs: 250 }));
+
+      await act(async () => {});
 
       expect(tauriMocks.refreshProvidersIfStale).not.toHaveBeenCalled();
 

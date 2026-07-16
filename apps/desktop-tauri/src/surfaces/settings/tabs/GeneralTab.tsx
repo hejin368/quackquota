@@ -6,6 +6,7 @@ import { Field, NumberInput, Select, Toggle } from "../../../components/FormCont
 import type { Language, LanguageOption, UsageThresholdOverride } from "../../../types/bridge";
 import type { LocaleKey } from "../../../i18n/keys";
 import type { TabProps } from "../../Settings";
+import CodexProductSettings from "../../../codex-overlay/CodexProductSettings";
 
 const FALLBACK_LANGUAGE_OPTIONS: LanguageOption[] = [
   { value: "english", display: "English" },
@@ -88,7 +89,6 @@ function ThresholdOverrideInputs({
     </Field>
   );
 }
-
 export default function GeneralTab({
   mode = "general",
   settings,
@@ -155,6 +155,10 @@ export default function GeneralTab({
           </Field>
         </div>
       </section>}
+
+      {mode === "general" && (
+        <CodexProductSettings settings={settings} set={set} saving={saving} />
+      )}
 
       {mode === "notifications" && <section className="settings-section">
         <h3 className="settings-section__title">
@@ -308,6 +312,7 @@ export default function GeneralTab({
           <Field
             label={t("RefreshIntervalLabel")}
             description={t("RefreshIntervalHelper")}
+            className="codex-settings-responsive-field"
           >
             <Select
               value={String(settings.refreshIntervalSecs)}

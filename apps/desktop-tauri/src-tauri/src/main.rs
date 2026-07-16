@@ -2,7 +2,10 @@
 
 use std::time::Duration;
 
+mod app_icon;
 mod auto_refresh;
+mod codex_overlay;
+mod codex_quota;
 mod commands;
 mod events;
 mod floatbar;
@@ -86,21 +89,29 @@ where
     args.is_empty() || should_open_primary_window_from_args(&args)
 }
 
-fn launch_behavior<I, S>(force_visible: bool, start_minimized: bool, args: I) -> LaunchBehavior
+fn legacy_surfaces_enabled() -> bool {
+    std::env::var_os("CODEXBAR_ENABLE_LEGACY_SURFACES").is_some()
+}
+
+fn launch_behavior<I, S>(force_visible: bool, legacy_surfaces: bool, args: I) -> LaunchBehavior
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
 {
     let args = nonblank_launch_args(args);
     let explicit_primary_launch = should_open_primary_window_from_args(&args);
-    let plain_desktop_launch = args.is_empty();
-
     LaunchBehavior {
-        open_primary_window_at_start: force_visible
-            || explicit_primary_launch
-            || (plain_desktop_launch && !start_minimized),
+        open_primary_window_at_start: force_visible || (legacy_surfaces && explicit_primary_launch),
         suppress_blur_dismiss: force_visible,
     }
+}
+
+fn should_reopen_legacy_primary_window<I, S>(legacy_surfaces: bool, args: I) -> bool
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    legacy_surfaces && should_reopen_primary_window_from_instance_args(args)
 }
 
 fn should_suppress_blur_dismiss(launch: LaunchBehavior, proof_mode: bool) -> bool {
@@ -113,12 +124,14 @@ fn main() {
     let proof_config = proof_harness::ProofConfig::from_env();
     let is_proof_mode = proof_config.is_some();
     let force_start_visible = std::env::var_os("CODEXBAR_START_VISIBLE").is_some();
+    let legacy_surfaces = legacy_surfaces_enabled();
     let settings = codexbar::settings::Settings::load();
     let launch = launch_behavior(
         force_start_visible,
-        settings.start_minimized,
+        legacy_surfaces,
         std::env::args().skip(1),
     );
+    let show_codex_overlay_at_start = codex_overlay::should_show_at_start(&settings);
 
     let mut initial_state = AppState::new();
     initial_state.proof_config = proof_config;
@@ -126,11 +139,17 @@ fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(initial_state))
         .plugin(shortcut_bridge::plugin())
-        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
-            if should_reopen_primary_window_from_instance_args(args.iter().skip(1)) {
+        .plugin(tauri_plugin_single_instance::init(move |app, args, _cwd| {
+            if should_reopen_legacy_primary_window(legacy_surfaces, args.iter().skip(1)) {
                 let request = primary_window_request();
                 let _ =
                     shell::reopen_to_target(app, request.mode, request.target, request.position);
+            } else if let Err(error) = codex_overlay::show(app) {
+                tracing::warn!(
+                    target: "codexbar::codex_overlay",
+                    error = %codexbar::logging::safe_error_message(error),
+                    "failed to show Codex overlay for second-instance activation"
+                );
             }
         }))
         .invoke_handler(tauri::generate_handler![
@@ -217,6 +236,12 @@ fn main() {
             commands::set_ui_language,
             commands::open_path,
             tray_visibility::tray_visibility_status,
+            codex_overlay::show_codex_overlay,
+            codex_overlay::hide_codex_overlay,
+            codex_overlay::reset_codex_overlay_position,
+            codex_quota::read_codex_rate_limits,
+            codex_quota::get_codex_proxy_status,
+            codex_quota::test_codex_proxy_connection,
             floatbar::show_float_bar,
             floatbar::hide_float_bar,
             floatbar::set_float_bar_opacity,
@@ -226,6 +251,7 @@ fn main() {
         ])
         .setup(move |app| {
             if let Some(window) = app.get_webview_window("main") {
+                window.set_icon(app_icon::image()?)?;
                 shell::dwm::force_dark_caption(&window);
                 window.hide()?;
             }
@@ -235,6 +261,16 @@ fn main() {
             auto_refresh::install(app.handle().clone());
             if settings.powertoys_status_pipe_enabled {
                 powertoys::install(app.handle().clone());
+            }
+
+            if show_codex_overlay_at_start {
+                let app = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    tokio::time::sleep(VISIBLE_START_ACTIVATION_DELAY).await;
+                    if let Err(error) = codex_overlay::show(&app) {
+                        tracing::warn!(target: "codexbar::overlay", %error, "failed to show overlay at startup");
+                    }
+                });
             }
 
             // Give the WebView/event loop one turn to finish startup before
@@ -263,14 +299,21 @@ fn main() {
             Ok(())
         })
         .on_window_event(move |window, event| {
+            if codex_overlay::handle_window_event(window, event) {
+                return;
+            }
+            if shell::settings_window::handle_window_event(window, event) {
+                return;
+            }
             if floatbar::handle_window_event(window, event) {
                 return;
             }
             if shell::flyout_window::handle_window_event(window, event) {
                 return;
             }
-            // Only the main window participates in blur-dismiss and close-to-hide.
-            // The detached settings window uses normal OS close behavior.
+            // Only the dormant legacy main window participates in
+            // blur-dismiss and close-to-hide. Detached public surfaces handle
+            // their own close lifecycle above.
             if window.label() != "main" {
                 return;
             }
@@ -413,25 +456,25 @@ mod tests {
     }
 
     #[test]
-    fn plain_desktop_launch_opens_unless_start_minimized() {
+    fn normal_launch_never_opens_legacy_primary_window() {
         assert_eq!(
             launch_behavior(false, false, std::iter::empty::<&str>()),
             LaunchBehavior {
-                open_primary_window_at_start: true,
+                open_primary_window_at_start: false,
                 suppress_blur_dismiss: false,
             }
         );
         assert_eq!(
             launch_behavior(false, false, [""]),
             LaunchBehavior {
-                open_primary_window_at_start: true,
+                open_primary_window_at_start: false,
                 suppress_blur_dismiss: false,
             }
         );
         assert_eq!(
             launch_behavior(false, false, ["  "]),
             LaunchBehavior {
-                open_primary_window_at_start: true,
+                open_primary_window_at_start: false,
                 suppress_blur_dismiss: false,
             }
         );
@@ -445,13 +488,18 @@ mod tests {
     }
 
     #[test]
-    fn single_instance_plain_launch_reopens_primary_window() {
+    fn single_instance_reopens_legacy_primary_only_when_opted_in() {
         assert!(should_reopen_primary_window_from_instance_args(
             std::iter::empty::<&str>()
         ));
         assert!(should_reopen_primary_window_from_instance_args([""]));
         assert!(should_reopen_primary_window_from_instance_args(["  "]));
         assert!(should_reopen_primary_window_from_instance_args(["menubar"]));
+        assert!(!should_reopen_legacy_primary_window(
+            false,
+            std::iter::empty::<&str>()
+        ));
+        assert!(should_reopen_legacy_primary_window(true, ["menubar"]));
     }
 
     #[test]
@@ -467,7 +515,7 @@ mod tests {
 
     #[test]
     fn automation_launch_opens_and_suppresses_blur_dismiss() {
-        let launch = launch_behavior(true, true, std::iter::empty::<&str>());
+        let launch = launch_behavior(true, false, std::iter::empty::<&str>());
         assert_eq!(
             launch,
             LaunchBehavior {
@@ -480,7 +528,7 @@ mod tests {
 
     #[test]
     fn proof_mode_suppresses_blur_dismiss() {
-        let launch = launch_behavior(false, true, std::iter::empty::<&str>());
+        let launch = launch_behavior(false, false, std::iter::empty::<&str>());
         assert!(should_suppress_blur_dismiss(launch, true));
     }
 

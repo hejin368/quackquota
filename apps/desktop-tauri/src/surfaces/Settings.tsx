@@ -1,5 +1,15 @@
-import { useCallback, useEffect, useState, type ReactElement, type ReactNode } from "react";
-import { getCurrentWindow, LogicalPosition, LogicalSize } from "@tauri-apps/api/window";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+import {
+  getCurrentWindow,
+  LogicalPosition,
+  LogicalSize,
+} from "@tauri-apps/api/window";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type {
   BootstrapState,
@@ -10,12 +20,17 @@ import { useSettings } from "../hooks/useSettings";
 import { useSurfaceTarget } from "../hooks/useSurfaceMode";
 import { useLocale } from "../hooks/useLocale";
 import type { LocaleKey } from "../i18n/keys";
-import { closeSettingsWindow, getWorkAreaRect, setSurfaceMode } from "../lib/tauri";
+import {
+  closeSettingsWindow,
+  getWorkAreaRect,
+  setSurfaceMode,
+} from "../lib/tauri";
 import GeneralTab from "./settings/tabs/GeneralTab";
 import DisplayTab from "./settings/tabs/DisplayTab";
 import AdvancedTab from "./settings/tabs/AdvancedTab";
 import AboutTab from "./settings/tabs/AboutTab";
 import ProvidersTab from "./settings/tabs/ProvidersTab";
+import SettingsSaveFeedback from "./settings/SettingsSaveFeedback";
 
 // ── tab types ────────────────────────────────────────────────────────
 
@@ -116,14 +131,13 @@ const SETTINGS_WINDOW_WIDTH = 600;
 
 async function applySettingsWindowSize() {
   const workArea = await getWorkAreaRect().catch(() => null);
-  const screenWidth = window.screen.availWidth || window.innerWidth || SETTINGS_WINDOW_WIDTH;
-  const screenHeight = window.screen.availHeight || window.innerHeight || SETTINGS_WINDOW_HEIGHT;
+  const screenWidth =
+    window.screen.availWidth || window.innerWidth || SETTINGS_WINDOW_WIDTH;
+  const screenHeight =
+    window.screen.availHeight || window.innerHeight || SETTINGS_WINDOW_HEIGHT;
   const maxWidth = Math.min(workArea?.width ?? screenWidth, screenWidth);
   const maxHeight = Math.min(workArea?.height ?? screenHeight, screenHeight);
-  const width = Math.max(
-    360,
-    Math.min(SETTINGS_WINDOW_WIDTH, maxWidth - 16),
-  );
+  const width = Math.max(360, Math.min(SETTINGS_WINDOW_WIDTH, maxWidth - 16));
   const height = Math.max(
     360,
     Math.min(SETTINGS_WINDOW_HEIGHT, maxHeight - 16),
@@ -146,8 +160,14 @@ async function applySettingsWindowSize() {
     .catch(() => {});
 }
 
-export default function Settings({ state, initialTab: propTab }: { state: BootstrapState; initialTab?: string }) {
-  const { settings, saving, error, update } = useSettings(state.settings);
+export default function Settings({
+  state,
+  initialTab: propTab,
+}: {
+  state: BootstrapState;
+  initialTab?: string;
+}) {
+  const { settings, saveFeedback, update } = useSettings(state.settings);
   const { t } = useLocale();
   const shellTarget = useSurfaceTarget("settings");
   const initialTab: SettingsTab =
@@ -184,7 +204,7 @@ export default function Settings({ state, initialTab: propTab }: { state: Bootst
     });
   }, [shellTarget]);
 
-  const set = (patch: SettingsUpdate) => void update(patch);
+  const set = (patch: SettingsUpdate) => update(patch);
   const handleTabClick = useCallback((tab: SettingsTab) => {
     setActiveTab(tab);
     // Only transition the main window if we're NOT in the detached settings window
@@ -199,7 +219,9 @@ export default function Settings({ state, initialTab: propTab }: { state: Bootst
     >
       {/* custom title bar (decorations disabled for guaranteed dark theme) */}
       <div className="settings-titlebar" data-tauri-drag-region>
-        <span className="settings-titlebar__title" data-tauri-drag-region>{t("SettingsWindowTitle")}</span>
+        <span className="settings-titlebar__title" data-tauri-drag-region>
+          {t("SettingsWindowTitle")}
+        </span>
         <div className="settings-titlebar__controls">
           <button
             className="settings-titlebar__control settings-titlebar__control--minimize"
@@ -236,42 +258,62 @@ export default function Settings({ state, initialTab: propTab }: { state: Bootst
         ))}
       </nav>
 
-      {/* status bar */}
-      {(saving || error) && (
-        <div
-          className={`settings-status ${error ? "settings-status--error" : ""}`}
-        >
-          {saving ? t("SettingsStatusSaving") : error}
-        </div>
-      )}
+      <SettingsSaveFeedback
+        feedback={saveFeedback}
+        savingLabel={t("SettingsStatusSaving")}
+        savedLabel={t("SettingsStatusSaved")}
+        failedLabel={t("SettingsStatusFailed")}
+      />
 
       {/* tab panels */}
-      <div className={`settings-body${activeTab === "providers" ? " settings-body--providers" : ""}`}>
+      <div
+        className={`settings-body${activeTab === "providers" ? " settings-body--providers" : ""}`}
+      >
         {activeTab === "general" && (
-          <GeneralTab mode="general" settings={settings} set={set} saving={saving} />
+          <GeneralTab
+            mode="general"
+            settings={settings}
+            set={set}
+            saving={false}
+          />
         )}
         {activeTab === "providers" && (
           <ProvidersTab
             settings={settings}
             providers={state.providers}
             set={set}
-            saving={saving}
+            saving={false}
           />
         )}
         {activeTab === "notifications" && (
-          <GeneralTab mode="notifications" settings={settings} set={set} saving={saving} />
+          <GeneralTab
+            mode="notifications"
+            settings={settings}
+            set={set}
+            saving={false}
+          />
         )}
         {activeTab === "menuBar" && (
-          <DisplayTab mode="menuBar" settings={settings} set={set} saving={saving} />
+          <DisplayTab
+            mode="menuBar"
+            settings={settings}
+            set={set}
+            saving={false}
+          />
         )}
         {activeTab === "menu" && (
-          <DisplayTab mode="menu" settings={settings} set={set} saving={saving} />
+          <DisplayTab
+            mode="menu"
+            settings={settings}
+            set={set}
+            saving={false}
+          />
         )}
         {activeTab === "advanced" && (
-          <AdvancedTab settings={settings} set={set} saving={saving} />
+          <AdvancedTab settings={settings} set={set} saving={false} />
         )}
         {activeTab === "about" && (
-          <AboutTab settings={settings} set={set} saving={saving} />
+          <AboutTab settings={settings} set={set} saving={false} />
         )}
       </div>
     </div>
@@ -282,6 +324,6 @@ export default function Settings({ state, initialTab: propTab }: { state: Bootst
 
 export interface TabProps {
   settings: BootstrapState["settings"];
-  set: (p: SettingsUpdate) => void;
+  set: (p: SettingsUpdate) => Promise<void>;
   saving: boolean;
 }

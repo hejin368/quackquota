@@ -60,7 +60,11 @@ nul
 .env
 .env.*
 /.local/
-/docs/
+/docs/*
+!/docs/manual-acceptance-v0.md
+!/docs/security-review.md
+!/docs/mascot-architecture.md
+!/docs/windows-icon.md
 /scripts/*
 /docs/ui-parity-workflow.md
 /scripts/crop_vm_preferences_proof.sh

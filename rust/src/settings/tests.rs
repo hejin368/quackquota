@@ -29,6 +29,83 @@ fn new_warning_and_reset_settings_are_backward_compatible() {
 }
 
 #[test]
+fn codex_overlay_product_settings_are_backward_compatible() {
+    let loaded: Settings = serde_json::from_str(
+        r#"{
+            "enabled_providers": ["codex"],
+            "refresh_interval_secs": 300
+        }"#,
+    )
+    .expect("parse pre-overlay settings");
+
+    assert!(loaded.codex_proxy_use_environment);
+    assert!(loaded.codex_manual_proxy.is_empty());
+    assert_eq!(
+        loaded.codex_overlay_startup_mode,
+        CodexOverlayStartupMode::RememberLast
+    );
+    assert!(loaded.codex_overlay_last_visible);
+    assert!(!loaded.codex_overlay_has_launched);
+}
+
+#[test]
+fn codex_overlay_product_settings_roundtrip_without_resetting_choice() {
+    let settings = Settings {
+        codex_proxy_use_environment: false,
+        codex_manual_proxy: "http://proxy.example:8080".to_string(),
+        codex_overlay_startup_mode: CodexOverlayStartupMode::AlwaysHide,
+        codex_overlay_last_visible: false,
+        codex_overlay_has_launched: true,
+        ..Settings::default()
+    };
+
+    let serialized = serde_json::to_string(&settings).expect("serialize settings");
+    let loaded: Settings = serde_json::from_str(&serialized).expect("deserialize settings");
+
+    assert!(!loaded.codex_proxy_use_environment);
+    assert_eq!(loaded.codex_manual_proxy, "http://proxy.example:8080");
+    assert_eq!(
+        loaded.codex_overlay_startup_mode,
+        CodexOverlayStartupMode::AlwaysHide
+    );
+    assert!(!loaded.codex_overlay_last_visible);
+    assert!(loaded.codex_overlay_has_launched);
+}
+
+#[test]
+fn codex_overlay_startup_modes_roundtrip_without_resetting_choice() {
+    for mode in [
+        CodexOverlayStartupMode::RememberLast,
+        CodexOverlayStartupMode::AlwaysShow,
+        CodexOverlayStartupMode::AlwaysHide,
+    ] {
+        let settings = Settings {
+            codex_overlay_startup_mode: mode,
+            ..Settings::default()
+        };
+
+        let serialized = serde_json::to_string(&settings).expect("serialize settings");
+        let loaded: Settings = serde_json::from_str(&serialized).expect("deserialize settings");
+        assert_eq!(loaded.codex_overlay_startup_mode, mode);
+    }
+}
+
+#[test]
+fn codex_overlay_unknown_startup_mode_falls_back_to_remember_last() {
+    let loaded: Settings = serde_json::from_str(
+        r#"{
+            "codex_overlay_startup_mode": "legacy-or-invalid-value"
+        }"#,
+    )
+    .expect("parse settings with an obsolete overlay mode");
+
+    assert_eq!(
+        loaded.codex_overlay_startup_mode,
+        CodexOverlayStartupMode::RememberLast
+    );
+}
+
+#[test]
 fn usage_thresholds_inherit_from_window_provider_and_global_levels() {
     let mut settings = Settings::default();
     settings.provider_usage_thresholds.insert(

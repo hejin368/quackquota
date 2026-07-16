@@ -2,22 +2,19 @@
 
 use std::sync::Mutex;
 
-use crate::commands::ProviderCatalogEntry;
+#[cfg(test)]
 use codexbar::core::ProviderId;
-use codexbar::settings::{MetricPreference, Settings, TrayIconMode};
-use tauri::image::Image;
+use codexbar::settings::Settings;
+#[cfg(test)]
+use codexbar::settings::{MetricPreference, TrayIconMode};
 use tauri::menu::{CheckMenuItemBuilder, IsMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Manager};
-
-use codexbar::tray::{render_bar_icon_rgba, render_percent_icon_rgba};
 
 use crate::shell;
 use crate::state::{AppState, TrayAnchor};
 use crate::surface::SurfaceMode;
 use crate::surface_target::SurfaceTarget;
-#[cfg(test)]
-use crate::tray_menu::build_tray_menu;
 use crate::tray_menu::{TrayMenuEntry, build_tray_menu_with};
 
 #[derive(Debug, Clone, Copy)]
@@ -121,20 +118,9 @@ fn resolve_tray_anchor(
     }
 }
 
-fn build_native_tray_menu(
-    app: &AppHandle,
-    providers: &[ProviderCatalogEntry],
-    status_labels: &[(String, String)],
-) -> tauri::Result<Menu<tauri::Wry>> {
+fn build_native_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let settings = Settings::load();
-    let enabled = settings.enabled_providers.clone();
-    let spec = build_tray_menu_with(
-        providers,
-        status_labels,
-        &enabled,
-        settings.float_bar_enabled,
-        settings.ui_language,
-    );
+    let spec = build_tray_menu_with(crate::codex_overlay::is_visible(app), settings.ui_language);
     let entries = spec
         .iter()
         .map(|entry| build_native_menu_entry(app, entry))
@@ -182,6 +168,8 @@ enum MenuAction {
     ToggleProvider(String),
     /// Toggle the floating bar window on/off.
     ToggleFloatBar,
+    /// Toggle the detached Codex-only usage overlay.
+    ToggleCodexOverlay,
     Quit,
 }
 
@@ -198,6 +186,7 @@ fn resolve_menu_action(id: &str) -> Option<MenuAction> {
         "settings" => Some(MenuAction::OpenSettings("general".into())),
         "about" => Some(MenuAction::OpenSettings("about".into())),
         "toggle_float_bar" => Some(MenuAction::ToggleFloatBar),
+        "toggle_codex_overlay" => Some(MenuAction::ToggleCodexOverlay),
         "pop_out" => Some(MenuAction::OpenFlyout),
         _ if id.starts_with("toggle_provider:") => {
             let provider_id = id["toggle_provider:".len()..].to_string();
@@ -244,14 +233,12 @@ fn store_anchor(app: &AppHandle, rect: &tauri::Rect, click_position: tauri::Phys
 
 /// Initialise the system tray icon, context menu, and event handlers.
 ///
-/// - **Left-click** toggles the custom tray panel via the surface state machine.
+/// - **Left-click** toggles the Codex overlay.
 /// - **Right-click** opens the native context menu with shell actions.
 pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let menu = build_native_tray_menu(app.handle(), &crate::commands::get_provider_catalog(), &[])?;
+    let menu = build_native_tray_menu(app.handle())?;
 
-    // Embed the icon at compile time so it works regardless of working directory.
-    let icon_bytes = include_bytes!("../../../../rust/icons/icon.png");
-    let icon = Image::from_bytes(icon_bytes)?;
+    let icon = crate::app_icon::image()?;
 
     let _tray = TrayIconBuilder::with_id("codexbar-main")
         .icon(icon)
@@ -270,20 +257,14 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 let app = tray.app_handle();
                 if button == MouseButton::Left && button_state == MouseButtonState::Up {
                     store_anchor(app, &rect, position);
-                    // Left-click toggles the dedicated flyout window (Pop Out
-                    // Dashboard): open it, or cleanly close it when this same
-                    // click already blur-dismissed it (no open→close flicker).
-                    // The full window stays available via "Show Window"
-                    // (SurfaceMode::PopOut on `main`) — the two now coexist as
-                    // separate OS windows instead of mutually-exclusive states
-                    // of one window. Called directly (not spawned): native
-                    // tray-icon event callbacks run on the same main-thread
-                    // event-loop context as `on_menu_event` below, where
-                    // `settings_window::open_or_focus` is also called
-                    // synchronously — the WebviewWindowBuilder deadlock only
-                    // affects builds invoked from *synchronous Tauri IPC
-                    // commands*, not native event-loop callbacks.
-                    shell::flyout_window::toggle_with_blur_consume(app, None);
+                    if let Err(error) = crate::codex_overlay::toggle(app) {
+                        tracing::warn!(
+                            target: "codexbar::codex_overlay",
+                            error = %codexbar::logging::safe_error_message(error),
+                            "failed to toggle Codex overlay from tray"
+                        );
+                    }
+                    rebuild_tray_menu(app);
                 }
             }
         })
@@ -376,6 +357,16 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
             crate::floatbar::toggle(app);
             rebuild_tray_menu(app);
         }
+        Some(MenuAction::ToggleCodexOverlay) => {
+            if let Err(error) = crate::codex_overlay::toggle(app) {
+                tracing::warn!(
+                    target: "codexbar::codex_overlay",
+                    error = %codexbar::logging::safe_error_message(error),
+                    "failed to toggle Codex overlay"
+                );
+            }
+            rebuild_tray_menu(app);
+        }
         Some(MenuAction::Quit) => {
             app.exit(0);
         }
@@ -385,17 +376,7 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
 
 /// Rebuild the native tray menu from current provider + settings state.
 pub(crate) fn rebuild_tray_menu(app: &AppHandle) {
-    let catalog = crate::commands::get_provider_catalog();
-    let settings = Settings::load();
-    let status_labels = if let Some(st) = app.try_state::<Mutex<AppState>>() {
-        let guard = st.lock().unwrap();
-        let snapshots =
-            presentation_snapshots(&guard.provider_cache, settings.codex_spark_usage_visible());
-        status_labels_for_settings(&settings, &snapshots, settings.ui_language)
-    } else {
-        vec![]
-    };
-    if let Ok(menu) = build_native_tray_menu(app, &catalog, &status_labels)
+    if let Ok(menu) = build_native_tray_menu(app)
         && let Some(tray) = app.tray_by_id("codexbar-main")
     {
         let _ = tray.set_menu(Some(menu));
@@ -405,18 +386,9 @@ pub(crate) fn rebuild_tray_menu(app: &AppHandle) {
 /// Rebuild the tray menu with current provider status labels after a refresh cycle.
 pub fn update_tray_status_items(
     app: &AppHandle,
-    snapshots: &[crate::commands::ProviderUsageSnapshot],
+    _snapshots: &[crate::commands::ProviderUsageSnapshot],
 ) {
-    let catalog = crate::commands::get_provider_catalog();
-    let settings = Settings::load();
-    let snapshots = presentation_snapshots(snapshots, settings.codex_spark_usage_visible());
-    let status_labels = status_labels_for_settings(&settings, &snapshots, settings.ui_language);
-
-    if let Ok(menu) = build_native_tray_menu(app, &catalog, &status_labels)
-        && let Some(tray) = app.tray_by_id("codexbar-main")
-    {
-        let _ = tray.set_menu(Some(menu));
-    }
+    rebuild_tray_menu(app);
 }
 
 /// Refresh every native tray surface that depends on settings and cached provider data.
@@ -440,17 +412,8 @@ fn presentation_snapshots(
     snapshots
 }
 
-/// Update the tray icon pixels and tooltip text to reflect current provider usage.
-///
-/// Behaviour mirrors egui's `choose_tray_update_plan` (rust/src/native_ui/app.rs):
-/// - If `menu_bar_shows_highest_usage` is on OR `menu_bar_display_mode == "minimal"`,
-///   render the bar from the healthy provider with the highest session usage.
-/// - Otherwise render from the first enabled healthy provider (catalog order).
-/// - When any provider exposes a weekly/secondary window, the icon shows both
-///   bars from the same picked provider.
-/// - With zero healthy providers but at least one error, fall back to an
-///   error-styled icon using the last known max percentage so the tray
-///   still communicates "something is wrong".
+/// Update only the tray tooltip. The canonical blue application icon remains
+/// stable across provider refreshes so Windows never swaps brand artwork.
 pub fn update_tray_icon_and_tooltip(
     app: &AppHandle,
     snapshots: &[crate::commands::ProviderUsageSnapshot],
@@ -459,42 +422,13 @@ pub fn update_tray_icon_and_tooltip(
         return;
     };
 
-    // ── Icon ─────────────────────────────────────────────────────────────
     let settings = Settings::load();
     let snapshots = presentation_snapshots(snapshots, settings.codex_spark_usage_visible());
-    let ordered_snapshots = ordered_snapshot_refs(&settings, &snapshots);
-    let ok_snapshots: Vec<_> = ordered_snapshots
-        .iter()
-        .copied()
-        .filter(|s| s.error.is_none())
-        .collect();
-    let all_error = ok_snapshots.is_empty() && !snapshots.is_empty();
-
-    let prefer_highest = settings.menu_bar_shows_highest_usage
-        || settings.menu_bar_display_mode.as_str() == "minimal";
-
-    let picked = pick_tray_provider(&ok_snapshots, prefer_highest);
-
-    let (session_pct, weekly_pct) = match picked {
-        Some(s) => selected_tray_percents(s, &settings),
-        None => (
-            ok_snapshots
-                .iter()
-                .map(|s| selected_tray_percents(s, &settings).0)
-                .fold(0.0_f64, f64::max),
-            None,
-        ),
-    };
-
-    let (rgba, w, h) = render_tray_icon_for_settings(&settings, session_pct, weekly_pct, all_error);
-    let icon = Image::new_owned(rgba, w, h);
-    let _ = tray.set_icon(Some(icon));
-
-    // ── Tooltip ───────────────────────────────────────────────────────────
     let tooltip = build_tooltip(&snapshots, settings.ui_language);
     let _ = tray.set_tooltip(Some(tooltip));
 }
 
+#[cfg(test)]
 fn status_labels_for_settings(
     settings: &Settings,
     snapshots: &[crate::commands::ProviderUsageSnapshot],
@@ -523,6 +457,7 @@ fn status_labels_for_settings(
     vec![("status_summary".to_string(), label)]
 }
 
+#[cfg(test)]
 fn ordered_snapshot_refs<'a>(
     settings: &Settings,
     snapshots: &'a [crate::commands::ProviderUsageSnapshot],
@@ -547,6 +482,7 @@ fn ordered_snapshot_refs<'a>(
     ordered
 }
 
+#[cfg(test)]
 fn provider_status_label(
     snapshot: &crate::commands::ProviderUsageSnapshot,
     lang: codexbar::settings::Language,
@@ -558,23 +494,11 @@ fn provider_status_label(
     )
 }
 
-fn render_tray_icon_for_settings(
-    settings: &Settings,
-    session_pct: f64,
-    weekly_pct: Option<f64>,
-    all_error: bool,
-) -> (Vec<u8>, u32, u32) {
-    if settings.menu_bar_shows_percent {
-        render_percent_icon_rgba(session_pct, all_error)
-    } else {
-        render_bar_icon_rgba(session_pct, weekly_pct, all_error)
-    }
-}
-
 /// Pick the provider whose usage the tray icon should render.
 ///
 /// Exposed so that the unit tests can exercise both `highest` and `first`
 /// paths without needing a live Tauri app handle.
+#[cfg(test)]
 fn pick_tray_provider<'a>(
     ok_snapshots: &'a [&'a crate::commands::ProviderUsageSnapshot],
     prefer_highest: bool,
@@ -594,6 +518,7 @@ fn pick_tray_provider<'a>(
     }
 }
 
+#[cfg(test)]
 fn selected_tray_percents(
     snapshot: &crate::commands::ProviderUsageSnapshot,
     settings: &Settings,
@@ -617,11 +542,13 @@ fn selected_tray_percents(
     )
 }
 
+#[cfg(test)]
 fn display_metric_percent(used_percent: f64, show_as_used: bool) -> f64 {
     let used = used_percent.clamp(0.0, 100.0);
     if show_as_used { used } else { 100.0 - used }
 }
 
+#[cfg(test)]
 fn selected_metric_percent(
     snapshot: &crate::commands::ProviderUsageSnapshot,
     provider: Option<ProviderId>,
@@ -654,6 +581,7 @@ fn selected_metric_percent(
     }
 }
 
+#[cfg(test)]
 fn automatic_metric_percent(
     snapshot: &crate::commands::ProviderUsageSnapshot,
     provider: Option<ProviderId>,
@@ -684,11 +612,13 @@ fn automatic_metric_percent(
     }
 }
 
+#[cfg(test)]
 fn average_metric_percent(snapshot: &crate::commands::ProviderUsageSnapshot) -> Option<f64> {
     let secondary = snapshot.secondary.as_ref()?;
     Some((snapshot.primary.used_percent + secondary.used_percent) / 2.0)
 }
 
+#[cfg(test)]
 fn cost_metric_percent(snapshot: &crate::commands::ProviderUsageSnapshot) -> Option<f64> {
     let cost = snapshot.cost.as_ref()?;
     let limit = cost.limit?;
@@ -698,6 +628,7 @@ fn cost_metric_percent(snapshot: &crate::commands::ProviderUsageSnapshot) -> Opt
     Some(((cost.used / limit) * 100.0).clamp(0.0, 100.0))
 }
 
+#[cfg(test)]
 fn extra_rate_window_percent(snapshot: &crate::commands::ProviderUsageSnapshot) -> Option<f64> {
     snapshot
         .extra_rate_windows
@@ -706,6 +637,7 @@ fn extra_rate_window_percent(snapshot: &crate::commands::ProviderUsageSnapshot) 
         .max_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal))
 }
 
+#[cfg(test)]
 fn max_metric_percent<const N: usize>(values: [Option<f64>; N]) -> Option<f64> {
     values
         .into_iter()
@@ -828,39 +760,28 @@ fn build_native_menu_entry(
 mod tests {
     use super::*;
 
-    fn sample_provider_catalog() -> Vec<ProviderCatalogEntry> {
-        vec![
-            ProviderCatalogEntry {
-                id: "codex".into(),
-                display_name: "Codex".into(),
-                cookie_domain: None,
-            },
-            ProviderCatalogEntry {
-                id: "claude".into(),
-                display_name: "Claude".into(),
-                cookie_domain: None,
-            },
-        ]
-    }
-
     #[test]
-    fn tray_menu_includes_about_and_provider_entries() {
-        let menu = build_tray_menu(
-            &sample_provider_catalog(),
-            &[],
-            &["codex".to_string(), "claude".to_string()]
-                .into_iter()
-                .collect(),
-        );
+    fn tray_menu_exposes_only_public_v0_1_surfaces() {
+        let menu = build_tray_menu_with(false, codexbar::settings::Language::English);
         assert!(menu_contains(&menu, "about"));
-        assert!(menu_contains(&menu, "toggle_provider:codex"));
+        assert!(menu_contains(&menu, "settings"));
+        assert!(menu_contains(&menu, "toggle_codex_overlay"));
         assert!(menu_contains(&menu, "quit"));
+        assert!(!menu_contains(&menu, "show_panel"));
+        assert!(!menu_contains(&menu, "pop_out"));
+        assert!(!menu_contains(&menu, "toggle_provider:codex"));
     }
 
     #[test]
     fn toggle_float_bar_routes_to_toggle_action() {
         let action = resolve_menu_action("toggle_float_bar").expect("float bar action");
         assert!(matches!(action, MenuAction::ToggleFloatBar));
+    }
+
+    #[test]
+    fn codex_overlay_routes_to_detached_window_action() {
+        let action = resolve_menu_action("toggle_codex_overlay").expect("Codex overlay action");
+        assert!(matches!(action, MenuAction::ToggleCodexOverlay));
     }
 
     #[test]
@@ -1225,23 +1146,10 @@ mod tests {
     }
 
     #[test]
-    fn tray_icon_renderer_uses_percent_mode_when_enabled() {
-        let bar_settings = Settings {
-            menu_bar_shows_percent: false,
-            ..Settings::default()
-        };
-        let percent_settings = Settings {
-            menu_bar_shows_percent: true,
-            ..Settings::default()
-        };
-
-        let (bar, bar_w, bar_h) =
-            render_tray_icon_for_settings(&bar_settings, 72.0, Some(40.0), false);
-        let (percent, pct_w, pct_h) =
-            render_tray_icon_for_settings(&percent_settings, 72.0, Some(40.0), false);
-
-        assert_eq!((bar_w, bar_h), (pct_w, pct_h));
-        assert_ne!(bar, percent);
+    fn tray_uses_the_canonical_application_icon() {
+        let icon = crate::app_icon::image().expect("canonical icon should decode");
+        assert_eq!(icon.width(), 1024);
+        assert_eq!(icon.height(), 1024);
     }
 
     #[test]

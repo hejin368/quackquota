@@ -1,4 +1,18 @@
 use super::*;
+use serde::{Deserialize, Deserializer};
+
+fn deserialize_codex_overlay_startup_mode<'de, D>(
+    deserializer: D,
+) -> Result<CodexOverlayStartupMode, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = Option::<String>::deserialize(deserializer)?;
+    Ok(value
+        .as_deref()
+        .and_then(CodexOverlayStartupMode::parse)
+        .unwrap_or_default())
+}
 
 /// Raw on-disk shape of [`Settings`] used purely for deserialization.
 ///
@@ -19,6 +33,16 @@ pub(super) struct RawSettings {
     refresh_all_providers_on_menu_open: bool,
     start_minimized: bool,
     start_at_login: bool,
+    #[serde(default = "default_true")]
+    codex_proxy_use_environment: bool,
+    #[serde(default)]
+    codex_manual_proxy: String,
+    #[serde(default, deserialize_with = "deserialize_codex_overlay_startup_mode")]
+    codex_overlay_startup_mode: CodexOverlayStartupMode,
+    #[serde(default = "default_true")]
+    codex_overlay_last_visible: bool,
+    #[serde(default)]
+    codex_overlay_has_launched: bool,
     show_notifications: bool,
     sound_enabled: bool,
     sound_volume: u8,
@@ -154,6 +178,11 @@ impl Default for RawSettings {
             refresh_all_providers_on_menu_open: s.refresh_all_providers_on_menu_open,
             start_minimized: s.start_minimized,
             start_at_login: s.start_at_login,
+            codex_proxy_use_environment: s.codex_proxy_use_environment,
+            codex_manual_proxy: s.codex_manual_proxy,
+            codex_overlay_startup_mode: s.codex_overlay_startup_mode,
+            codex_overlay_last_visible: s.codex_overlay_last_visible,
+            codex_overlay_has_launched: s.codex_overlay_has_launched,
             show_notifications: s.show_notifications,
             sound_enabled: s.sound_enabled,
             sound_volume: s.sound_volume,
@@ -444,6 +473,11 @@ impl From<RawSettings> for Settings {
             refresh_all_providers_on_menu_open: raw.refresh_all_providers_on_menu_open,
             start_minimized: raw.start_minimized,
             start_at_login: raw.start_at_login,
+            codex_proxy_use_environment: raw.codex_proxy_use_environment,
+            codex_manual_proxy: raw.codex_manual_proxy,
+            codex_overlay_startup_mode: raw.codex_overlay_startup_mode,
+            codex_overlay_last_visible: raw.codex_overlay_last_visible,
+            codex_overlay_has_launched: raw.codex_overlay_has_launched,
             show_notifications: raw.show_notifications,
             sound_enabled: raw.sound_enabled,
             sound_volume: raw.sound_volume,

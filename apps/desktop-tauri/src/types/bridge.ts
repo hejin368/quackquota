@@ -219,6 +219,9 @@ export interface SettingsSnapshot {
   refreshAllProvidersOnMenuOpen: boolean;
   startAtLogin: boolean;
   startMinimized: boolean;
+  codexProxyUseEnvironment?: boolean;
+  codexManualProxy?: string;
+  codexOverlayStartupMode?: CodexOverlayStartupMode;
   showNotifications: boolean;
   soundEnabled: boolean;
   soundVolume: number;
@@ -284,6 +287,9 @@ export interface SettingsUpdate {
   refreshAllProvidersOnMenuOpen?: boolean;
   startAtLogin?: boolean;
   startMinimized?: boolean;
+  codexProxyUseEnvironment?: boolean;
+  codexManualProxy?: string;
+  codexOverlayStartupMode?: CodexOverlayStartupMode;
   showNotifications?: boolean;
   soundEnabled?: boolean;
   soundVolume?: number;
@@ -331,6 +337,11 @@ export interface SettingsUpdate {
   floatBarShowCost?: boolean;
   promoteTrayIcon?: boolean;
 }
+
+export type CodexOverlayStartupMode =
+  | "rememberLast"
+  | "alwaysShow"
+  | "alwaysHide";
 
 export interface UsageThresholdOverride {
   high?: number;
@@ -624,12 +635,6 @@ export interface WorkAreaRect {
   width: number;
   height: number;
 }
-
-// ── Phase 4 — event payloads ─────────────────────────────────────────
-
-/** Payload emitted for the `global-shortcut-triggered` event: the
- *  accelerator string that fired, e.g. `"Ctrl+Shift+U"`. */
-export type GlobalShortcutTriggeredPayload = string;
 
 // ── Phase 5 — i18n ────────────────────────────────────────────────────
 

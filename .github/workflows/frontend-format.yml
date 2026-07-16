@@ -1,0 +1,33 @@
+name: Frontend format
+
+on:
+  pull_request:
+    paths:
+      - "apps/desktop-tauri/src/codex-overlay/**"
+      - "apps/desktop-tauri/package.json"
+      - "apps/desktop-tauri/pnpm-lock.yaml"
+      - ".github/workflows/frontend-format.yml"
+  push:
+    paths:
+      - "apps/desktop-tauri/src/codex-overlay/**"
+      - "apps/desktop-tauri/package.json"
+      - "apps/desktop-tauri/pnpm-lock.yaml"
+      - ".github/workflows/frontend-format.yml"
+
+jobs:
+  prettier:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/desktop-tauri
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/desktop-tauri/pnpm-lock.yaml
+      - run: corepack enable
+      - run: corepack prepare pnpm@10.18.1 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run format:check

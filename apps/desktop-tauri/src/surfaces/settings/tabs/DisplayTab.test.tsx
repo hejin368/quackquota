@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../../hooks/useLocale", () => ({
@@ -44,6 +44,23 @@ describe("DisplayTab window scale", () => {
     expect(set).toHaveBeenCalledWith({ windowScalePercent: 175 });
   });
 
+  it("previews slider movement locally and persists only when the interaction ends", () => {
+    const set = vi.fn();
+    renderTab(set);
+    const slider = screen.getByRole("slider", { name: "WindowScaleAriaLabel" });
+
+    act(() => {
+      fireEvent.change(slider, { target: { value: "125" } });
+      fireEvent.change(slider, { target: { value: "150" } });
+    });
+
+    expect(set).not.toHaveBeenCalled();
+
+    fireEvent.pointerUp(slider);
+    expect(set).toHaveBeenCalledTimes(1);
+    expect(set).toHaveBeenCalledWith({ windowScalePercent: 150 });
+  });
+
   it("does not commit when the value is unchanged", () => {
     const set = vi.fn();
     renderTab(set);
@@ -59,7 +76,9 @@ describe("DisplayTab window scale", () => {
     const set = vi.fn();
     renderTab(set);
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "ShowResetWhenExhausted" }));
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "ShowResetWhenExhausted" }),
+    );
 
     expect(set).toHaveBeenCalledWith({ showResetWhenExhausted: true });
   });

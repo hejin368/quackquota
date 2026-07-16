@@ -45,6 +45,30 @@ pub struct StoredSize {
     pub height: u32,
 }
 
+/// Monitor identity and work-area data used by the Codex overlay. A name is
+/// preferred when Windows exposes one; bounds and scale provide a stable
+/// fallback without persisting any user identity.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StoredMonitorInfo {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+    pub scale_factor: f64,
+}
+
+/// Overlay position in logical pixels relative to the saved monitor work area.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StoredOverlayGeometry {
+    pub monitor: StoredMonitorInfo,
+    pub logical_x: f64,
+    pub logical_y: f64,
+    pub logical_width: u32,
+    pub logical_height: u32,
+}
+
 /// All persisted geometries keyed by surface mode string (`settings`, ...).
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct GeometryFile {
@@ -58,6 +82,8 @@ pub struct GeometryFile {
     /// be misread as a remembered position.
     #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
     pub size_entries: std::collections::BTreeMap<String, StoredSize>,
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub overlay_entries: std::collections::BTreeMap<String, StoredOverlayGeometry>,
 }
 
 fn geometry_path() -> Option<PathBuf> {
@@ -202,6 +228,28 @@ pub fn save_size(key: &str, size: StoredSize) {
     }
 }
 
+pub fn load_overlay(key: &str) -> Option<StoredOverlayGeometry> {
+    load_file().overlay_entries.get(key).cloned()
+}
+
+pub fn save_overlay(key: &str, geometry: StoredOverlayGeometry) {
+    let mut file = load_file();
+    file.version = GEOMETRY_VERSION;
+    file.overlay_entries.insert(key.to_string(), geometry);
+    if let Err(err) = save_file(&file) {
+        tracing::warn!(target: "codexbar::geometry", %err, "failed to persist overlay geometry");
+    }
+}
+
+pub fn remove_overlay(key: &str) {
+    let mut file = load_file();
+    if file.overlay_entries.remove(key).is_some()
+        && let Err(err) = save_file(&file)
+    {
+        tracing::warn!(target: "codexbar::geometry", %err, "failed to clear overlay geometry");
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -317,6 +365,31 @@ mod tests {
         let entry = parsed.size_entries.get("flyout").unwrap();
         assert_eq!(entry.width, 400);
         assert_eq!(entry.height, 820);
+    }
+
+    #[test]
+    fn overlay_geometry_round_trips_monitor_and_logical_position() {
+        let mut file = GeometryFile::default();
+        file.overlay_entries.insert(
+            "codex-overlay".into(),
+            StoredOverlayGeometry {
+                monitor: StoredMonitorInfo {
+                    name: Some("DISPLAY-2".into()),
+                    x: -1920,
+                    y: 0,
+                    width: 1920,
+                    height: 1040,
+                    scale_factor: 1.25,
+                },
+                logical_x: 120.0,
+                logical_y: 80.0,
+                logical_width: 420,
+                logical_height: 260,
+            },
+        );
+        let json = serde_json::to_string(&file).unwrap();
+        let parsed: GeometryFile = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.overlay_entries, file.overlay_entries);
     }
 
     #[test]

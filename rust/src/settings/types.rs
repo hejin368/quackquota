@@ -1,5 +1,35 @@
 use super::*;
 
+/// Controls whether the detached Codex overlay is shown during app startup.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum CodexOverlayStartupMode {
+    /// Restore the last explicit show/hide state. The very first launch shows.
+    #[default]
+    RememberLast,
+    AlwaysShow,
+    AlwaysHide,
+}
+
+impl CodexOverlayStartupMode {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::RememberLast => "rememberLast",
+            Self::AlwaysShow => "alwaysShow",
+            Self::AlwaysHide => "alwaysHide",
+        }
+    }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "rememberLast" => Some(Self::RememberLast),
+            "alwaysShow" => Some(Self::AlwaysShow),
+            "alwaysHide" => Some(Self::AlwaysHide),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct UsageThresholdOverride {
     pub high: Option<f64>,

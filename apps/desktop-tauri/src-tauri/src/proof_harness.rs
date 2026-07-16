@@ -547,31 +547,18 @@ fn native_menu_snapshot_for_path(menu_path: &str) -> (String, Vec<String>) {
 }
 
 fn native_menu_context_for_item(item_id: &str) -> Result<(String, Vec<String>), String> {
-    let providers = get_provider_catalog();
     let settings = codexbar::settings::Settings::load();
-    let entries = tray_menu::build_tray_menu_with(
-        &providers,
-        &[],
-        &settings.enabled_providers,
-        settings.float_bar_enabled,
-        settings.ui_language,
-    );
+    let entries = tray_menu::build_tray_menu_with(false, settings.ui_language);
     tray_menu::proof_menu_context_for_item(&entries, item_id)
         .ok_or_else(|| format!("proof menu context missing tray item: {item_id}"))
 }
 
 fn native_menu_snapshot_for_settings(
-    providers: &[ProviderCatalogEntry],
+    _providers: &[ProviderCatalogEntry],
     settings: &codexbar::settings::Settings,
     menu_path: &str,
 ) -> (String, Vec<String>) {
-    let entries = tray_menu::build_tray_menu_with(
-        providers,
-        &[],
-        &settings.enabled_providers,
-        settings.float_bar_enabled,
-        settings.ui_language,
-    );
+    let entries = tray_menu::build_tray_menu_with(false, settings.ui_language);
     let menu_items = tray_menu::proof_menu_items(&entries, menu_path).unwrap_or_default();
     (menu_path.to_string(), menu_items)
 }
@@ -826,8 +813,11 @@ mod tests {
 
         let (_, items) = native_menu_snapshot_for_settings(&providers, &settings, "tray");
 
-        assert!(items.iter().any(|item| item == "すべて更新"));
-        assert!(items.iter().any(|item| item == "ウィンドウを表示"));
+        assert!(items.iter().any(|item| item == "Codex オーバーレイを表示"));
+        assert!(items.iter().any(|item| item == "設定..."));
+        assert!(items.iter().any(|item| item == "終了"));
+        assert!(!items.iter().any(|item| item == "すべて更新"));
+        assert!(!items.iter().any(|item| item == "ウィンドウを表示"));
         assert!(!items.iter().any(|item| item == "Refresh All"));
     }
 

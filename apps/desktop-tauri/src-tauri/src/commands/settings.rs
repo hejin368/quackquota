@@ -12,6 +12,9 @@ pub struct SettingsUpdate {
     pub refresh_all_providers_on_menu_open: Option<bool>,
     pub start_at_login: Option<bool>,
     pub start_minimized: Option<bool>,
+    pub codex_proxy_use_environment: Option<bool>,
+    pub codex_manual_proxy: Option<String>,
+    pub codex_overlay_startup_mode: Option<String>,
     pub show_notifications: Option<bool>,
     pub sound_enabled: Option<bool>,
     pub sound_volume: Option<u8>,
@@ -145,6 +148,21 @@ impl SettingsUpdate {
         }
         if let Some(v) = self.start_minimized {
             settings.start_minimized = v;
+        }
+        if let Some(v) = self.codex_proxy_use_environment {
+            settings.codex_proxy_use_environment = v;
+        }
+        if let Some(v) = self.codex_manual_proxy.clone() {
+            codexbar::providers::codex::validate_manual_proxy(&v)
+                .map_err(|_| "Invalid Codex proxy configuration".to_string())?;
+            settings.codex_manual_proxy = v.trim().to_string();
+        }
+        if let Some(v) = self
+            .codex_overlay_startup_mode
+            .as_deref()
+            .and_then(codexbar::settings::CodexOverlayStartupMode::parse)
+        {
+            settings.codex_overlay_startup_mode = v;
         }
         if let Some(v) = self.global_shortcut.clone() {
             settings.global_shortcut = v;
@@ -351,6 +369,7 @@ fn parse_language(s: &str) -> Option<Language> {
 pub async fn update_settings(
     app: tauri::AppHandle,
     patch: SettingsUpdate,
+    window: tauri::WebviewWindow,
 ) -> Result<SettingsSnapshot, String> {
     let mut settings = Settings::load();
     let notify_float_bar = patch.notifies_float_bar();
@@ -383,7 +402,9 @@ pub async fn update_settings(
     }
     if tray_promotion_changed {
         let new_promoted = settings.promote_tray_icon;
-        if new_promoted || crate::tray_visibility::should_write_demotion(previous_promoted, new_promoted) {
+        if new_promoted
+            || crate::tray_visibility::should_write_demotion(previous_promoted, new_promoted)
+        {
             crate::tray_visibility::apply_promotion(new_promoted);
         }
     }
@@ -391,7 +412,7 @@ pub async fn update_settings(
     // Notify other windows (PopOut dashboard, tray, float bar) so they re-read
     // settings live — e.g. the Display tab's window-scale slider takes effect
     // immediately instead of only after the PopOut is reopened.
-    events::emit_settings_changed(&app);
+    events::emit_settings_changed(&app, Some(window.label()));
     if refresh_provider_data {
         let app = app.clone();
         tauri::async_runtime::spawn(async move {

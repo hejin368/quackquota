@@ -35,6 +35,7 @@ const FLYOUT_SIZE_KEY: &str = "flyout";
 /// pre-split tray panel handling (formerly `shell::transition::handle_tray_panel_click`,
 /// removed once its only caller — the tray-icon left-click handler — was
 /// retargeted to call this module directly).
+#[allow(dead_code)] // Retained behind the opt-in legacy-surface path for rollback.
 const BLUR_DISMISS_CLICK_WINDOW: Duration = Duration::from_millis(250);
 /// Grace period after showing the flyout during which a spurious Windows
 /// blur (tray click focus race) is ignored — mirrors `main.rs`'s 500ms
@@ -55,6 +56,7 @@ pub fn save_stored_size(width: u32, height: u32) {
 /// Whether the flyout window currently exists and is visible. Canonical
 /// replacement for the pre-split `surface_machine.current() == TrayPanel`
 /// check, now that the flyout is not a state of the shared machine.
+#[allow(dead_code)] // Retained behind the opt-in legacy-surface path for rollback.
 pub fn is_open(app: &AppHandle) -> bool {
     app.get_webview_window(FLYOUT_LABEL)
         .is_some_and(|w| w.is_visible().unwrap_or(false))
@@ -112,6 +114,9 @@ pub fn open_or_focus(app: &AppHandle, position: Option<(i32, i32)>) -> Result<()
         // disabled explicitly on every window that hosts that grid.
         .disable_drag_drop_handler()
         .visible(false);
+    builder = builder
+        .icon(crate::app_icon::image()?)
+        .map_err(|e| e.to_string())?;
     if let (Some(min_w), Some(min_h)) = (props.min_width, props.min_height) {
         builder = builder.min_inner_size(min_w, min_h);
     }
@@ -155,6 +160,7 @@ fn arm_reveal(app: &AppHandle) -> Result<(), String> {
 /// flyout cleanly closes it instead of instantly reopening.
 ///
 /// Must be called from an async context — see [`open_or_focus`].
+#[allow(dead_code)] // Retained behind the opt-in legacy-surface path for rollback.
 pub fn toggle_with_blur_consume(app: &AppHandle, position: Option<(i32, i32)>) {
     let consumed_blur_dismissal = {
         let st = app.state::<Mutex<AppState>>();

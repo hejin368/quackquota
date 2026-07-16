@@ -6,13 +6,13 @@ import {
   downloadUpdate,
   getBootstrapState,
   getSettingsSnapshot,
-  setSurfaceMode,
 } from "./lib/tauri";
 import { useSurfaceSnapshot } from "./hooks/useSurfaceSnapshot";
 import { useTheme } from "./hooks/useTheme";
 import { useLocale } from "./hooks/useLocale";
 import TrayPanel from "./surfaces/TrayPanel";
 import { FLOATBAR_WINDOW_LABEL } from "./floatbar/api";
+import { CODEX_OVERLAY_WINDOW_LABEL } from "./codex-overlay/api";
 import { LocaleProvider } from "./i18n/LocaleProvider";
 import type { BootstrapState, ThemePreference } from "./types/bridge";
 import type { SurfaceSnapshot } from "./hooks/useSurfaceSnapshot";
@@ -20,11 +20,11 @@ import type { SurfaceSnapshot } from "./hooks/useSurfaceSnapshot";
 const Settings = lazy(() => import("./surfaces/Settings"));
 const PopOutPanel = lazy(() => import("./surfaces/PopOutPanel"));
 const FloatBar = lazy(() => import("./floatbar/FloatBar"));
+const CodexOverlay = lazy(() => import("./codex-overlay/CodexOverlay"));
 
 function SurfaceFallback() {
   return null;
 }
-
 /** True when running inside the detached Settings window. */
 function isSettingsWindow(): boolean {
   return getCurrentWebviewWindow().label === "settings";
@@ -33,6 +33,11 @@ function isSettingsWindow(): boolean {
 /** True when running inside the detached FloatBar window. */
 function isFloatBarWindow(): boolean {
   return getCurrentWebviewWindow().label === FLOATBAR_WINDOW_LABEL;
+}
+
+/** True when running inside the detached Codex-only overlay window. */
+function isCodexOverlayWindow(): boolean {
+  return getCurrentWebviewWindow().label === CODEX_OVERLAY_WINDOW_LABEL;
 }
 
 /** True when running inside the detached flyout ("Pop Out Dashboard") window. */
@@ -98,14 +103,6 @@ function AppInner() {
         .catch(() => {});
     }, 2_000);
 
-    // Listen for user-registered global shortcut events from the
-    // `register_global_shortcut` command. The persistent shortcut (bound via
-    // shortcut_bridge::plugin) already opens the PopOut dashboard natively;
-    // this listener is the fallback for ad-hoc capture-mode registrations.
-    const unlistenPromise = listen<string>("global-shortcut-triggered", () => {
-      void setSurfaceMode("popOut", { kind: "dashboard" }).catch(() => {});
-    });
-
     const unlistenSettingsChangePromise = isSettingsWindow()
       ? listen<string>("settings-change-tab", () => {
           void reloadBootstrapState()
@@ -135,7 +132,6 @@ function AppInner() {
 
     return () => {
       cancelled = true;
-      void unlistenPromise.then((unlisten) => unlisten()).catch(() => {});
       void unlistenSettingsChangePromise
         .then((unlisten) => unlisten?.())
         .catch(() => {});
@@ -176,6 +172,14 @@ function AppInner() {
     return (
       <Suspense fallback={<SurfaceFallback />}>
         <FloatBar state={state} />
+      </Suspense>
+    );
+  }
+
+  if (isCodexOverlayWindow()) {
+    return (
+      <Suspense fallback={<SurfaceFallback />}>
+        <CodexOverlay />
       </Suspense>
     );
   }

@@ -46,7 +46,7 @@ pub fn reorder_providers(
     crate::tray_bridge::refresh_tray_presentation(&app);
     // Notify open surfaces (tray flyout, pop-out window) so their provider grid
     // and cards re-render in the new order immediately after a drag-reorder.
-    crate::events::emit_settings_changed(&app);
+    crate::events::emit_settings_changed(&app, None);
     Ok(build_provider_summaries(&settings))
 }
 

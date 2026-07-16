@@ -9,6 +9,8 @@ use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime};
 
+use super::proxy::{ResolvedCodexProxy, resolve_codex_proxy};
+
 const DEFAULT_BASE_URL: &str = "https://chatgpt.com/backend-api";
 const USAGE_PATH: &str = "/wham/usage";
 const RESET_CREDITS_PATH: &str = "/wham/rate-limit-reset-credits";
@@ -18,21 +20,35 @@ static CREDENTIAL_CACHE: OnceLock<Mutex<Option<CachedCodexCredentials>>> = OnceL
 
 /// Codex API client
 pub struct CodexApi {
-    client: reqwest::Client,
+    client: Option<reqwest::Client>,
+    proxy_configuration_valid: bool,
     home_dir: PathBuf,
 }
 
 impl CodexApi {
     pub fn new() -> Self {
-        // Build client with proper TLS settings
-        let client = crate::core::credentialed_http_client_builder()
+        match resolve_codex_proxy() {
+            Ok(proxy) => Self::with_proxy(&proxy),
+            Err(_) => Self {
+                client: None,
+                proxy_configuration_valid: false,
+                home_dir: dirs::home_dir().unwrap_or_else(|| PathBuf::from(".")),
+            },
+        }
+    }
+
+    pub(super) fn with_proxy(proxy: &ResolvedCodexProxy) -> Self {
+        let builder = crate::core::credentialed_http_client_builder()
             .use_rustls_tls()
-            .timeout(std::time::Duration::from_secs(30))
-            .build()
-            .unwrap_or_else(|_| reqwest::Client::new());
+            .timeout(std::time::Duration::from_secs(30));
+        let client = proxy
+            .configure_http_client(builder)
+            .ok()
+            .and_then(|builder| builder.build().ok());
 
         Self {
             client,
+            proxy_configuration_valid: true,
             home_dir: dirs::home_dir().unwrap_or_else(|| PathBuf::from(".")),
         }
     }
@@ -42,16 +58,27 @@ impl CodexApi {
     pub async fn fetch_usage(
         &self,
     ) -> Result<(UsageSnapshot, Option<CostSnapshot>), ProviderError> {
+        if !self.proxy_configuration_valid {
+            return Err(ProviderError::Other(
+                "Codex proxy configuration is invalid".to_string(),
+            ));
+        }
+        let client = self.client.as_ref().ok_or_else(|| {
+            ProviderError::Other("Codex HTTP client could not be created".to_string())
+        })?;
+
         // Load credentials
         let creds = self.load_credentials()?;
 
         // Build request URL
-        let base_url = self.resolve_base_url();
+        // Codex OAuth credentials are only sent to the official ChatGPT
+        // backend. User-configured `chatgpt_base_url` values are intentionally
+        // not honored by this credential-bearing legacy fallback.
+        let base_url = DEFAULT_BASE_URL.to_string();
         let url = format!("{}{}", base_url, USAGE_PATH);
 
         // Build request
-        let mut request = self
-            .client
+        let mut request = client
             .get(&url)
             .header("Authorization", format!("Bearer {}", creds.access_token))
             .header("User-Agent", "CodexBar")
@@ -87,8 +114,7 @@ impl CodexApi {
         if let Ok(reset_credits) = self.fetch_rate_limit_reset_credits(&creds, &base_url).await
             && reset_credits.available_count > 0
         {
-            let mut window = RateWindow::new(0.0);
-            window.reset_description = Some(format!(
+            let window = RateWindow::informational(format!(
                 "{} reset credit{} available",
                 reset_credits.available_count,
                 if reset_credits.available_count == 1 {
@@ -107,8 +133,10 @@ impl CodexApi {
         creds: &CodexCredentials,
         base_url: &str,
     ) -> Result<ResetCredits, ProviderError> {
-        let mut request = self
-            .client
+        let client = self.client.as_ref().ok_or_else(|| {
+            ProviderError::Other("Codex HTTP client could not be created".to_string())
+        })?;
+        let mut request = client
             .get(format!("{}{}", base_url, RESET_CREDITS_PATH))
             .header("Authorization", format!("Bearer {}", creds.access_token))
             .header("User-Agent", "CodexBar")
@@ -241,39 +269,6 @@ impl CodexApi {
         self.home_dir.join(".codex").join("auth.json")
     }
 
-    fn resolve_base_url(&self) -> String {
-        // Check CODEX_HOME for config.toml
-        let config_path = if let Ok(codex_home) = std::env::var("CODEX_HOME") {
-            let trimmed = codex_home.trim();
-            if !trimmed.is_empty() {
-                PathBuf::from(trimmed).join("config.toml")
-            } else {
-                self.home_dir.join(".codex").join("config.toml")
-            }
-        } else {
-            self.home_dir.join(".codex").join("config.toml")
-        };
-
-        if let Ok(content) = std::fs::read_to_string(&config_path)
-            && let Some(base_url) = parse_chatgpt_base_url(&content)
-        {
-            let normalized = normalize_base_url(&base_url);
-            // Only allow HTTPS URLs for custom base URLs to prevent token exfiltration
-            if normalized.starts_with("https://")
-                || normalized.starts_with("http://127.0.0.1")
-                || normalized.starts_with("http://localhost")
-            {
-                return normalized;
-            }
-            tracing::warn!(
-                "Ignoring insecure custom chatgpt_base_url (must be HTTPS): {}",
-                normalized
-            );
-        }
-
-        DEFAULT_BASE_URL.to_string()
-    }
-
     fn build_result_from_json(
         &self,
         json: &serde_json::Value,
@@ -338,33 +333,39 @@ impl CodexApi {
         if let Some(rate_limit) = json.get("rate_limit") {
             let primary_opt = rate_limit
                 .get("primary_window")
-                .map(|w| self.parse_window(w));
+                .and_then(|w| self.parse_window(w));
 
             let secondary_opt = rate_limit
                 .get("secondary_window")
-                .map(|w| self.parse_window(w));
+                .and_then(|w| self.parse_window(w));
 
             let code_review = rate_limit
                 .get("code_review_window")
-                .map(|w| self.parse_window(w));
+                .and_then(|w| self.parse_window(w));
 
             // If primary is missing, promote secondary to primary (weekly-only plans)
             let (primary, secondary) = match (primary_opt, secondary_opt) {
                 (Some(p), s) => (p, s),
                 (None, Some(s)) => (s, None),
-                (None, None) => (RateWindow::new(0.0), None),
+                (None, None) => (
+                    RateWindow::informational("Codex returned no valid rate limit windows"),
+                    None,
+                ),
             };
 
             return (primary, secondary, code_review);
         }
 
         // Try rate_limits array
-        if let Some(rate_limits) = json.get("rate_limits").and_then(|v| v.as_array())
-            && let Some(first) = rate_limits.first()
-        {
-            let primary = self.parse_window(first);
-            let secondary = rate_limits.get(1).map(|w| self.parse_window(w));
-            let code_review = rate_limits.get(2).map(|w| self.parse_window(w));
+        if let Some(rate_limits) = json.get("rate_limits").and_then(|v| v.as_array()) {
+            let mut valid = rate_limits
+                .iter()
+                .filter_map(|window| self.parse_window(window));
+            let primary = valid.next().unwrap_or_else(|| {
+                RateWindow::informational("Codex returned no valid rate limit windows")
+            });
+            let secondary = valid.next();
+            let code_review = valid.next();
             return (primary, secondary, code_review);
         }
 
@@ -372,18 +373,24 @@ impl CodexApi {
         let used_percent = json
             .get("used_percent")
             .or_else(|| json.get("usage_percent"))
-            .and_then(|v| v.as_f64())
-            .unwrap_or(0.0);
+            .and_then(json_f64)
+            .filter(|value| value.is_finite() && (0.0..=100.0).contains(value));
 
-        (RateWindow::new(used_percent), None, None)
+        (
+            used_percent.map(RateWindow::new).unwrap_or_else(|| {
+                RateWindow::informational("Codex returned no valid rate limit windows")
+            }),
+            None,
+            None,
+        )
     }
 
-    fn parse_window(&self, window: &serde_json::Value) -> RateWindow {
+    fn parse_window(&self, window: &serde_json::Value) -> Option<RateWindow> {
         let used_percent = window
             .get("used_percent")
             .or_else(|| window.get("usage_percent"))
             .and_then(json_f64)
-            .unwrap_or(0.0);
+            .filter(|value| value.is_finite() && (0.0..=100.0).contains(value))?;
 
         let window_minutes = window
             .get("limit_window_seconds")
@@ -395,12 +402,12 @@ impl CodexApi {
             .and_then(|v| v.as_i64())
             .and_then(|ts| Utc.timestamp_opt(ts, 0).single());
 
-        RateWindow::with_details(
+        Some(RateWindow::with_details(
             used_percent,
             window_minutes,
             reset_at,
             format_reset_countdown(reset_at),
-        )
+        ))
     }
 
     fn extract_additional_rate_limits(&self, json: &serde_json::Value) -> Vec<NamedRateWindow> {
@@ -432,7 +439,7 @@ impl CodexApi {
             return None;
         }
 
-        let parsed = self.parse_window(window);
+        let parsed = self.parse_window(window)?;
         let feature = metered_feature.unwrap_or_default();
         let limit = limit_name.unwrap_or_default();
         let is_spark = feature.eq_ignore_ascii_case("codex_spark")
@@ -509,10 +516,10 @@ impl CodexApi {
                     format_reset_countdown(reset_at),
                 )
             } else {
-                RateWindow::new(0.0)
+                RateWindow::informational("Codex returned no primary rate limit window")
             }
         } else {
-            RateWindow::new(0.0)
+            RateWindow::informational("Codex returned no rate limit window")
         };
 
         // Extract secondary rate window
@@ -801,54 +808,6 @@ fn format_reset_countdown(reset_at: Option<DateTime<Utc>>) -> Option<String> {
     } else {
         Some(format!("{}m", mins))
     }
-}
-
-fn parse_chatgpt_base_url(config_content: &str) -> Option<String> {
-    for line in config_content.lines() {
-        // Skip comments
-        let line = line.split('#').next().unwrap_or("").trim();
-        if line.is_empty() {
-            continue;
-        }
-
-        // Look for chatgpt_base_url = "..."
-        if let Some((key, value)) = line.split_once('=') {
-            let key = key.trim();
-            if key == "chatgpt_base_url" {
-                let mut value = value.trim();
-                // Remove quotes
-                if (value.starts_with('"') && value.ends_with('"'))
-                    || (value.starts_with('\'') && value.ends_with('\''))
-                {
-                    value = &value[1..value.len() - 1];
-                }
-                return Some(value.trim().to_string());
-            }
-        }
-    }
-    None
-}
-
-fn normalize_base_url(url: &str) -> String {
-    let mut trimmed = url.trim().to_string();
-    if trimmed.is_empty() {
-        return DEFAULT_BASE_URL.to_string();
-    }
-
-    // Remove trailing slashes
-    while trimmed.ends_with('/') {
-        trimmed.pop();
-    }
-
-    // Add /backend-api if needed
-    if (trimmed.starts_with("https://chatgpt.com")
-        || trimmed.starts_with("https://chat.openai.com"))
-        && !trimmed.contains("/backend-api")
-    {
-        trimmed.push_str("/backend-api");
-    }
-
-    trimmed
 }
 
 fn capitalize(s: &str) -> String {

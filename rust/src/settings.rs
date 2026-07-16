@@ -51,6 +51,26 @@ pub struct Settings {
     /// Whether to start at login
     pub start_at_login: bool,
 
+    /// Use HTTP(S)_PROXY from the current process when no manual Codex proxy is set.
+    #[serde(default = "default_true")]
+    pub codex_proxy_use_environment: bool,
+
+    /// Explicit HTTP/HTTPS proxy for Codex traffic. Credentials are rejected on update.
+    #[serde(default)]
+    pub codex_manual_proxy: String,
+
+    /// Startup behavior for the detached Codex overlay.
+    #[serde(default)]
+    pub codex_overlay_startup_mode: CodexOverlayStartupMode,
+
+    /// Last explicit visibility state used by `RememberLast`.
+    #[serde(default = "default_true")]
+    pub codex_overlay_last_visible: bool,
+
+    /// Distinguishes the first overlay-capable launch from later launches.
+    #[serde(default)]
+    pub codex_overlay_has_launched: bool,
+
     /// Whether to show notifications
     pub show_notifications: bool,
 
@@ -371,6 +391,11 @@ impl Default for Settings {
             refresh_all_providers_on_menu_open: false,
             start_minimized: false,
             start_at_login: false,
+            codex_proxy_use_environment: true,
+            codex_manual_proxy: String::new(),
+            codex_overlay_startup_mode: CodexOverlayStartupMode::RememberLast,
+            codex_overlay_last_visible: true,
+            codex_overlay_has_launched: false,
             show_notifications: true,
             sound_enabled: true,
             sound_volume: 100,

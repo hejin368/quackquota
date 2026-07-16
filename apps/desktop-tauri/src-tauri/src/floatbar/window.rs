@@ -74,6 +74,10 @@ pub fn show(
     #[cfg(windows)]
     let builder = builder.transparent(true);
 
+    let builder = builder
+        .icon(crate::app_icon::image()?)
+        .map_err(|e| e.to_string())?;
+
     let win = builder
         .background_color(tauri::utils::config::Color(0, 0, 0, 0))
         .visible(false)

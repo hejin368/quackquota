@@ -40,6 +40,7 @@ Push-Location $RepoRoot
 try {
     if ($All -or $Format) {
         Invoke-Step "Rust format" "cargo" @("fmt", "--all", "--check")
+        Invoke-Step "Frontend format" "corepack" @("pnpm@10.18.1", "--dir", "apps\desktop-tauri", "run", "format:check")
     }
     if ($All -or $Clippy) {
         Invoke-Step "Shared Rust clippy" "cargo" @("clippy", "--manifest-path", "rust\Cargo.toml", "--all-targets", "--", "-D", "warnings")
@@ -52,8 +53,8 @@ try {
         Invoke-Step "Tauri Rust tests" "cargo" @("test", "--manifest-path", "apps\desktop-tauri\src-tauri\Cargo.toml")
     }
     if ($All -or $Frontend) {
-        Invoke-Step "Frontend tests" "pnpm" @("--dir", "apps\desktop-tauri", "test")
-        Invoke-Step "Frontend build" "pnpm" @("--dir", "apps\desktop-tauri", "run", "build")
+        Invoke-Step "Frontend tests" "corepack" @("pnpm@10.18.1", "--dir", "apps\desktop-tauri", "test")
+        Invoke-Step "Frontend build" "corepack" @("pnpm@10.18.1", "--dir", "apps\desktop-tauri", "run", "build")
     }
     if ($All -or $ReleaseDoctor) {
         $args = @("-File", "scripts\release-doctor.ps1")

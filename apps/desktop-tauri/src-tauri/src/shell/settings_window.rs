@@ -22,15 +22,17 @@ pub fn open_or_focus(app: &tauri::AppHandle, tab: &str) -> Result<(), String> {
 
     let url = WebviewUrl::App(format!("index.html?window=settings&tab={tab}").into());
 
-    let win = tauri::WebviewWindowBuilder::new(app, SETTINGS_LABEL, url)
+    let builder = tauri::WebviewWindowBuilder::new(app, SETTINGS_LABEL, url)
         .title("CodexBar Settings")
         .inner_size(SETTINGS_WIDTH, SETTINGS_HEIGHT)
         .decorations(false)
         .shadow(false)
         .theme(Some(tauri::Theme::Dark))
         .resizable(true)
-        .build()
+        .visible(false)
+        .icon(crate::app_icon::image()?)
         .map_err(|e| e.to_string())?;
+    let win = builder.build().map_err(|e| e.to_string())?;
 
     // Force DWM caption to dark; keep WS_THICKFRAME since window is resizable
     super::dwm::force_dark_caption_resizable(&win);
@@ -48,7 +50,21 @@ pub fn open_or_focus(app: &tauri::AppHandle, tab: &str) -> Result<(), String> {
         let _ = win.set_position(PhysicalPosition::new(x, y));
     }
 
+    win.show().map_err(|e| e.to_string())?;
+    win.set_focus().map_err(|e| e.to_string())?;
+
     Ok(())
+}
+
+pub fn handle_window_event(window: &tauri::Window, event: &tauri::WindowEvent) -> bool {
+    if window.label() != SETTINGS_LABEL {
+        return false;
+    }
+    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+        api.prevent_close();
+        let _ = window.hide();
+    }
+    true
 }
 
 /// Dismiss Settings without exiting CodexBar.
@@ -65,4 +81,14 @@ pub fn dismiss(app: &tauri::AppHandle, window: &tauri::WebviewWindow) -> Result<
         mode == crate::surface::SurfaceMode::Settings
     })?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn settings_window_label_is_stable_for_single_instance_lookup() {
+        assert_eq!(SETTINGS_LABEL, "settings");
+    }
 }

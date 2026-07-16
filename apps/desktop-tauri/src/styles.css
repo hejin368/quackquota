@@ -4882,6 +4882,37 @@ html:has(.menu-surface--tray) {
   margin: 6px auto 0;
 }
 
+/* Always occupies the same space: persistence feedback must never move the
+   settings body or replace its current controls. */
+.settings-save-feedback {
+  width: 100%;
+  max-width: 560px;
+  min-height: 20px;
+  margin: 6px auto 0;
+  padding: 0 20px;
+  color: var(--text-muted);
+  font-size: var(--font-caption);
+  line-height: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.settings-save-feedback[data-state="saving"] {
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+.settings-save-feedback[data-state="saved"] {
+  color: var(--provider-status-ok);
+  opacity: 1;
+}
+
+.settings-save-feedback[data-state="error"] {
+  color: var(--provider-status-error);
+  opacity: 1;
+}
+
 /* ── Grouped form (SwiftUI Form .grouped) ─────────────────────────── */
 .settings-section {
   margin: 0 0 0;
@@ -4957,6 +4988,144 @@ html:has(.menu-surface--tray) {
   align-items: center;
   justify-content: center;
   align-self: center;
+}
+
+.codex-startup-options {
+  display: grid;
+  gap: 5px;
+  width: min(100%, 230px);
+  min-width: 210px;
+}
+
+.codex-startup-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--font-body);
+  font-weight: 400;
+  line-height: 1.25;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.codex-startup-option:hover {
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.codex-startup-option--selected {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.codex-startup-option--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.codex-startup-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.codex-startup-option__indicator {
+  display: grid;
+  place-items: center;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--text-muted);
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.codex-startup-option--selected .codex-startup-option__indicator {
+  border-color: var(--accent);
+}
+
+.codex-startup-option--selected .codex-startup-option__indicator::after {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  content: "";
+}
+
+.codex-startup-option input:focus-visible + .codex-startup-option__indicator {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.codex-startup-option__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+[data-theme="light"] .codex-startup-option {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.025);
+}
+
+[data-theme="light"] .codex-startup-option:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .codex-startup-option--selected {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.codex-settings-responsive-field .settings-field__control {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.codex-settings-responsive-field .settings-field__control > span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .codex-settings-responsive-field {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 7px;
+  }
+
+  .codex-settings-responsive-field.settings-field--leading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .codex-settings-responsive-field:not(.settings-field--leading)
+    .settings-field__control {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .codex-startup-options {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .codex-settings-responsive-field .text-input {
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box;
+  }
+
+  .codex-settings-responsive-field .shortcut-capture__button {
+    max-width: 100%;
+    white-space: normal;
+  }
 }
 
 /* Flat field stack: matches upstream SwiftUI VStack + Divider() per

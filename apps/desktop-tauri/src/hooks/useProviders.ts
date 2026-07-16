@@ -194,6 +194,13 @@ export function useProviders(options: UseProvidersOptions = {}): UseProvidersRes
       },
     );
 
+    const listenerRegistrations = [
+      unlistenUpdated,
+      unlistenSettings,
+      unlistenStarted,
+      unlistenComplete,
+    ];
+
     let initialRefreshTimer: number | undefined;
 
     const runInitialRefresh = () => {
@@ -208,15 +215,20 @@ export function useProviders(options: UseProvidersOptions = {}): UseProvidersRes
       });
     };
 
-    // Kick off the initial refresh, but let the backend reuse fresh cache.
-    if (options.refreshOnMount !== false) {
+    const scheduleInitialRefresh = () => {
+      if (cancelled || options.refreshOnMount === false) return;
       const delay = Math.max(0, options.initialRefreshDelayMs ?? 0);
       if (delay > 0) {
         initialRefreshTimer = window.setTimeout(runInitialRefresh, delay);
       } else {
         runInitialRefresh();
       }
-    }
+    };
+
+    // A fast local failure (for example, missing auth.json) can complete before
+    // Tauri's async `listen` calls resolve. Wait for every subscription attempt
+    // so the first refresh cannot outrun the provider/error event listeners.
+    void Promise.allSettled(listenerRegistrations).then(scheduleInitialRefresh);
 
     return () => {
       cancelled = true;
@@ -234,10 +246,10 @@ export function useProviders(options: UseProvidersOptions = {}): UseProvidersRes
         resetRefreshTimerRef.current = undefined;
       }
       pendingSnapshotsRef.current.clear();
-      unlistenUpdated.then((fn) => fn());
-      unlistenSettings.then((fn) => fn());
-      unlistenStarted.then((fn) => fn());
-      unlistenComplete.then((fn) => fn());
+      void unlistenUpdated.then((fn) => fn()).catch(() => {});
+      void unlistenSettings.then((fn) => fn()).catch(() => {});
+      void unlistenStarted.then((fn) => fn()).catch(() => {});
+      void unlistenComplete.then((fn) => fn()).catch(() => {});
     };
   }, [
     options.forceRefreshOnMount,

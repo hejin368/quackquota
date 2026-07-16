@@ -2,7 +2,6 @@
 
 #[tauri::command]
 pub fn register_global_shortcut(app: tauri::AppHandle, accelerator: String) -> Result<(), String> {
-    use tauri::Emitter;
     use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
     let shortcut = crate::shortcut_bridge::parse_shortcut(&accelerator)
@@ -11,11 +10,16 @@ pub fn register_global_shortcut(app: tauri::AppHandle, accelerator: String) -> R
     // Best-effort cleanup of any prior capture registration.
     let _ = app.global_shortcut().unregister(shortcut);
 
-    let accel_emit = accelerator.clone();
     app.global_shortcut()
         .on_shortcut(shortcut, move |app, _sc, event| {
-            if event.state == ShortcutState::Pressed {
-                let _ = app.emit("global-shortcut-triggered", accel_emit.clone());
+            if event.state == ShortcutState::Pressed
+                && let Err(error) = crate::codex_overlay::toggle(app)
+            {
+                tracing::warn!(
+                    target: "codexbar::codex_overlay",
+                    error = %codexbar::logging::safe_error_message(error),
+                    "failed to toggle Codex overlay from temporary shortcut"
+                );
             }
         })
         .map_err(|e| format!("Failed to register shortcut \"{accelerator}\": {e}"))?;

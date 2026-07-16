@@ -1,0 +1,249 @@
+body.codex-overlay-window,
+html:has(body.codex-overlay-window),
+body.codex-overlay-window #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+.codex-overlay__drag-shell {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+}
+
+.codex-overlay {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  height: 100%;
+  padding: 10px 12px;
+  color: #edf5ff;
+  background: rgba(16, 23, 34, 0.94);
+  border: 1px solid rgba(148, 179, 217, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.38);
+  font:
+    12px/1.35 "Segoe UI",
+    system-ui,
+    sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.codex-overlay__header,
+.codex-overlay__title,
+.codex-overlay__actions,
+.codex-overlay__plan,
+.codex-overlay__quota-heading,
+.codex-overlay__metrics,
+.codex-overlay__footer {
+  display: flex;
+  align-items: center;
+}
+
+.codex-overlay__header {
+  justify-content: space-between;
+  cursor: grab;
+}
+
+.codex-overlay__title {
+  gap: 8px;
+  font-size: 14px;
+}
+
+.codex-overlay__badge {
+  padding: 2px 6px;
+  color: #bcd4f2;
+  background: rgba(92, 129, 177, 0.18);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.codex-overlay__actions {
+  gap: 4px;
+}
+
+.codex-overlay__actions button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  color: #cbd8e8;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  font:
+    600 16px/1 "Segoe UI",
+    sans-serif;
+  cursor: pointer;
+}
+
+.codex-overlay__actions button:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.codex-overlay__actions button:disabled {
+  opacity: 0.5;
+}
+
+.codex-overlay__plan {
+  gap: 8px;
+  min-height: 20px;
+  color: #93a6bd;
+}
+
+.codex-overlay__plan strong {
+  margin-left: auto;
+  color: #e8f1fc;
+}
+
+.codex-overlay__credits {
+  color: #a8bbd1;
+  font-size: 10px;
+}
+
+.codex-overlay__quotas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  gap: 8px;
+  min-height: 0;
+}
+
+.codex-overlay__quotas--single {
+  grid-template-columns: 1fr;
+}
+
+.codex-overlay__quota {
+  min-width: 0;
+  padding: 8px 9px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+}
+
+.codex-overlay__quota-heading {
+  justify-content: space-between;
+  gap: 6px;
+  color: #cbd8e8;
+  font-weight: 600;
+}
+
+.codex-overlay__quota-heading strong {
+  color: #7dd3fc;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.codex-overlay__quota-heading > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codex-overlay__metrics {
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 3px;
+  color: #8fa2b8;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.codex-overlay__track {
+  height: 5px;
+  margin-top: 7px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.codex-overlay__track span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  border-radius: inherit;
+}
+
+.codex-overlay__reset {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 6px;
+  overflow: hidden;
+  color: #9fb1c7;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codex-overlay__reset span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codex-overlay__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 112px;
+  color: #c8d5e5;
+  text-align: center;
+}
+
+.codex-overlay__additional {
+  color: #9fb1c7;
+  font-size: 10px;
+  text-align: center;
+}
+
+.codex-overlay__empty span {
+  max-width: 330px;
+  margin-top: 6px;
+  overflow: hidden;
+  color: #94a7bd;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codex-overlay__warning {
+  overflow: hidden;
+  color: #fbbf8a;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.codex-overlay__footer {
+  justify-content: space-between;
+  gap: 8px;
+  overflow: hidden;
+  color: #71859d;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.codex-overlay__spin {
+  display: inline-block;
+  animation: codex-overlay-spin 800ms linear infinite;
+}
+
+@keyframes codex-overlay-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

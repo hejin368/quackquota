@@ -45,6 +45,14 @@ pub struct RefreshStartedPayload {
     pub provider_ids: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SettingsChangedPayload {
+    /// The originating window can use its command response directly instead
+    /// of immediately reading the complete settings file again.
+    pub source_window_label: Option<String>,
+}
+
 // ── Emit helpers ─────────────────────────────────────────────────────
 
 pub fn emit_surface_mode_changed(
@@ -99,9 +107,13 @@ pub fn emit_proof_state_changed(app: &AppHandle, payload: &ProofStatePayload) {
 }
 
 /// Broadcast to every window that persisted settings changed, so surfaces in
-/// other windows (e.g. the PopOut dashboard) re-read settings and re-render —
-/// the detached Settings window and the main window are separate webviews and
-/// do not share React state. Payload-less; listeners re-fetch the snapshot.
-pub fn emit_settings_changed(app: &AppHandle) {
-    let _ = app.emit(SETTINGS_CHANGED, ());
+/// other windows (e.g. the PopOut dashboard) re-read settings and re-render.
+/// The origin label lets the saving webview avoid an unnecessary self-refresh.
+pub fn emit_settings_changed(app: &AppHandle, source_window_label: Option<&str>) {
+    let _ = app.emit(
+        SETTINGS_CHANGED,
+        SettingsChangedPayload {
+            source_window_label: source_window_label.map(str::to_owned),
+        },
+    );
 }
