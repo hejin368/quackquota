@@ -11,6 +11,49 @@ export type CodexQuotaStatus =
 
 export type CodexQuotaSource = "app-server" | "legacy-provider" | "cache";
 
+export type ChatGptDesktopStatus =
+  | "monitoring-disabled"
+  | "detecting"
+  | "running"
+  | "not-running"
+  | "unsupported"
+  | "unavailable";
+
+/** Minimal lifecycle DTO emitted only by the Windows backend watcher. */
+export interface ChatGptDesktopSnapshot {
+  status: ChatGptDesktopStatus;
+}
+
+export type LifecycleDiagnosticEvent =
+  | "frontend-initial-invoke-success"
+  | "frontend-initial-invoke-error"
+  | "frontend-event-listen-success"
+  | "frontend-event-listen-error"
+  | "frontend-payload-validation-success"
+  | "frontend-payload-validation-error";
+
+export type LifecycleDiagnosticWindow =
+  "codex-overlay" | "settings" | "unknown";
+
+export type LifecycleDiagnosticErrorCategory =
+  | "invoke-command-not-found"
+  | "invoke-permission-denied"
+  | "invoke-backend-unavailable"
+  | "invoke-invalid-response"
+  | "event-listen-permission-denied"
+  | "event-listen-failed"
+  | "event-invalid-payload"
+  | "shared-state-not-ready"
+  | "unknown-safe-category"
+  | "event-emit-failed";
+
+export interface LifecycleFrontendDiagnostic {
+  event: LifecycleDiagnosticEvent;
+  windowLabel: LifecycleDiagnosticWindow;
+  status?: ChatGptDesktopStatus;
+  errorCategory?: LifecycleDiagnosticErrorCategory;
+}
+
 export type CodexConnectionErrorKind =
   | "dns-or-network"
   | "proxy-connection"

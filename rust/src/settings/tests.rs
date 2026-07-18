@@ -780,6 +780,41 @@ fn test_settings_roundtrip_with_theme() {
     assert_eq!(loaded.theme, ThemePreference::Dark);
 }
 
+#[test]
+fn chatgpt_lifecycle_settings_default_true_for_missing_and_invalid_values() {
+    let missing: Settings = serde_json::from_str(r#"{"enabled_providers":[]}"#).unwrap();
+    assert!(missing.monitor_chatgpt_desktop);
+    assert!(missing.show_overlay_on_chatgpt_start);
+    assert!(missing.hide_overlay_on_chatgpt_exit);
+
+    let invalid: Settings = serde_json::from_str(
+        r#"{
+          "monitor_chatgpt_desktop": "invalid",
+          "show_overlay_on_chatgpt_start": 0,
+          "hide_overlay_on_chatgpt_exit": null
+        }"#,
+    )
+    .unwrap();
+    assert!(invalid.monitor_chatgpt_desktop);
+    assert!(invalid.show_overlay_on_chatgpt_start);
+    assert!(invalid.hide_overlay_on_chatgpt_exit);
+}
+
+#[test]
+fn chatgpt_lifecycle_settings_roundtrip_independently() {
+    let settings = Settings {
+        monitor_chatgpt_desktop: false,
+        show_overlay_on_chatgpt_start: true,
+        hide_overlay_on_chatgpt_exit: false,
+        ..Settings::default()
+    };
+    let encoded = serde_json::to_string(&settings).unwrap();
+    let loaded: Settings = serde_json::from_str(&encoded).unwrap();
+    assert!(!loaded.monitor_chatgpt_desktop);
+    assert!(loaded.show_overlay_on_chatgpt_start);
+    assert!(!loaded.hide_overlay_on_chatgpt_exit);
+}
+
 // ── Phase 3: provider_configs migration tests ───────────────────────
 
 /// Loading a legacy `settings.json` (with flat per-provider fields)

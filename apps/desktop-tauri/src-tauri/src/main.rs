@@ -4,6 +4,8 @@ use std::time::Duration;
 
 mod app_icon;
 mod auto_refresh;
+mod chatgpt_lifecycle;
+mod chatgpt_lifecycle_diagnostic;
 mod codex_overlay;
 mod codex_quota;
 mod commands;
@@ -138,6 +140,7 @@ fn main() {
 
     tauri::Builder::default()
         .manage(Mutex::new(initial_state))
+        .manage(chatgpt_lifecycle::ChatGptLifecycleState::new(&settings))
         .plugin(shortcut_bridge::plugin())
         .plugin(tauri_plugin_single_instance::init(move |app, args, _cwd| {
             if should_reopen_legacy_primary_window(legacy_surfaces, args.iter().skip(1)) {
@@ -242,6 +245,9 @@ fn main() {
             codex_quota::read_codex_rate_limits,
             codex_quota::get_codex_proxy_status,
             codex_quota::test_codex_proxy_connection,
+            chatgpt_lifecycle::get_chatgpt_lifecycle_status,
+            chatgpt_lifecycle::record_chatgpt_lifecycle_frontend_diagnostic,
+            chatgpt_lifecycle::chatgpt_lifecycle_diagnostics_enabled,
             floatbar::show_float_bar,
             floatbar::hide_float_bar,
             floatbar::set_float_bar_opacity,
@@ -259,6 +265,7 @@ fn main() {
             shortcut_bridge::register(app.handle());
             floatbar::install(app.handle());
             auto_refresh::install(app.handle().clone());
+            chatgpt_lifecycle::install(app.handle().clone());
             if settings.powertoys_status_pipe_enabled {
                 powertoys::install(app.handle().clone());
             }
@@ -410,6 +417,47 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn production_builder_registers_the_lifecycle_command() {
+        let production_source = include_str!("main.rs")
+            .split("#[cfg(test)]")
+            .next()
+            .unwrap();
+        let handler = production_source
+            .split(".invoke_handler(tauri::generate_handler![")
+            .nth(1)
+            .expect("production builder must register an invoke handler");
+        assert!(handler.contains("chatgpt_lifecycle::get_chatgpt_lifecycle_status"));
+        assert_eq!(
+            production_source
+                .matches(".invoke_handler(tauri::generate_handler![")
+                .count(),
+            1,
+            "the desktop builder must have one authoritative invoke handler"
+        );
+    }
+
+    #[test]
+    fn lifecycle_capability_covers_the_overlay_and_settings_event_listeners() {
+        let capability: serde_json::Value =
+            serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
+        let windows = capability["windows"].as_array().unwrap();
+        assert!(windows.iter().any(|value| value == "codex-overlay"));
+        assert!(windows.iter().any(|value| value == "settings"));
+
+        let permissions = capability["permissions"].as_array().unwrap();
+        assert!(
+            permissions
+                .iter()
+                .any(|value| value == "core:event:allow-listen")
+        );
+        assert!(
+            permissions
+                .iter()
+                .any(|value| value == "core:event:allow-unlisten")
+        );
+    }
 
     #[test]
     fn close_request_hides_tray_first_surfaces() {

@@ -46,6 +46,13 @@ const translations: Record<string, Record<string, string>> = {
     CodexProxyTest: "Test connection",
     CodexProxyTesting: "Testing",
     CodexProxyClear: "Clear proxy",
+    ChatGptMonitorDesktop: "Monitor ChatGPT desktop application",
+    ChatGptMonitorDesktopHelper:
+      "Only monitors the Windows ChatGPT desktop application",
+    ChatGptShowOverlayOnStart: "Automatically show overlay when ChatGPT starts",
+    ChatGptHideOverlayOnExit: "Automatically hide overlay when ChatGPT closes",
+    ChatGptDesktopLifecycle: "ChatGPT desktop application status",
+    ChatGptLifecycleRunning: "Running",
   },
 };
 
@@ -57,11 +64,16 @@ vi.mock("../hooks/useLocale", () => ({
 
 vi.mock("./api", () => ({
   getCodexProxyStatus: vi.fn(() => new Promise<never>(() => {})),
+  getChatGptLifecycleStatus: vi.fn().mockResolvedValue({ status: "running" }),
   resetCodexOverlayPosition: vi.fn().mockResolvedValue(undefined),
   testCodexProxyConnection: vi.fn().mockResolvedValue({
     ok: true,
     source: "direct",
   }),
+}));
+
+vi.mock("./useChatGptLifecycle", () => ({
+  useChatGptLifecycle: () => ({ status: "running" }),
 }));
 
 const settings: SettingsSnapshot = {
@@ -229,7 +241,7 @@ describe("Codex overlay startup radio group", () => {
     expect(
       screen.getByRole("button", { name: "恢复悬浮窗默认位置" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("checkbox")).toBeInTheDocument();
+    expect(screen.getByText("使用系统/环境代理")).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText("http://proxy.example:8080"),
     ).toBeInTheDocument();
@@ -249,5 +261,32 @@ describe("Codex overlay startup radio group", () => {
     expect(set).toHaveBeenCalledWith({
       codexManualProxy: "http://proxy.example:8081",
     });
+  });
+});
+
+describe("ChatGPT desktop lifecycle settings", () => {
+  it("renders and persists three independent lifecycle toggles", () => {
+    locale.current = "en";
+    const { set } = renderSettings();
+
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Monitor ChatGPT desktop application",
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Automatically show overlay when ChatGPT starts",
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Automatically hide overlay when ChatGPT closes",
+      }),
+    );
+
+    expect(set).toHaveBeenCalledWith({ monitorChatgptDesktop: false });
+    expect(set).toHaveBeenCalledWith({ showOverlayOnChatgptStart: false });
+    expect(set).toHaveBeenCalledWith({ hideOverlayOnChatgptExit: false });
   });
 });

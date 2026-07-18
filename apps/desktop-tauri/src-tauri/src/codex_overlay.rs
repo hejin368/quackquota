@@ -260,14 +260,15 @@ fn remember_geometry<R: tauri::Runtime, W: OverlayWindowGeometry<R>>(window: &W)
     );
 }
 
-/// Open the Codex overlay, or bring the existing window to the front.
-pub fn show(app: &tauri::AppHandle) -> Result<(), String> {
+fn show_inner(app: &tauri::AppHandle, focus: bool) -> Result<(), String> {
     if let Some(window) = app.get_webview_window(CODEX_OVERLAY_LABEL) {
-        window
-            .set_always_on_top(true)
-            .map_err(|error| error.to_string())?;
         window.show().map_err(|error| error.to_string())?;
-        window.set_focus().map_err(|error| error.to_string())?;
+        if focus {
+            window
+                .set_always_on_top(true)
+                .map_err(|error| error.to_string())?;
+            window.set_focus().map_err(|error| error.to_string())?;
+        }
         remember_visibility(true);
         crate::tray_bridge::rebuild_tray_menu(app);
         return Ok(());
@@ -297,10 +298,24 @@ pub fn show(app: &tauri::AppHandle) -> Result<(), String> {
 
     apply_restored_position(&window);
     window.show().map_err(|error| error.to_string())?;
-    window.set_focus().map_err(|error| error.to_string())?;
+    if focus {
+        window.set_focus().map_err(|error| error.to_string())?;
+    }
     remember_visibility(true);
     crate::tray_bridge::rebuild_tray_menu(app);
     Ok(())
+}
+
+/// Open the Codex overlay, or bring the existing window to the front.
+pub fn show(app: &tauri::AppHandle) -> Result<(), String> {
+    crate::chatgpt_lifecycle::note_manual_overlay_show(app);
+    show_inner(app, true)
+}
+
+/// Lifecycle-triggered display preserves the user's focus and existing window
+/// attributes. It is not a tray/manual interaction.
+pub fn show_for_chatgpt_lifecycle(app: &tauri::AppHandle) -> Result<(), String> {
+    show_inner(app, false)
 }
 
 pub fn toggle(app: &tauri::AppHandle) -> Result<(), String> {
@@ -311,14 +326,25 @@ pub fn toggle(app: &tauri::AppHandle) -> Result<(), String> {
     }
 }
 
-pub fn hide(app: &tauri::AppHandle) -> Result<(), String> {
+fn hide_inner(app: &tauri::AppHandle, manual: bool) -> Result<(), String> {
     if let Some(window) = app.get_webview_window(CODEX_OVERLAY_LABEL) {
         remember_geometry(&window);
         window.hide().map_err(|error| error.to_string())?;
     }
+    if manual {
+        crate::chatgpt_lifecycle::note_manual_overlay_hide(app);
+    }
     remember_visibility(false);
     crate::tray_bridge::rebuild_tray_menu(app);
     Ok(())
+}
+
+pub fn hide(app: &tauri::AppHandle) -> Result<(), String> {
+    hide_inner(app, true)
+}
+
+pub fn hide_for_chatgpt_lifecycle(app: &tauri::AppHandle) -> Result<(), String> {
+    hide_inner(app, false)
 }
 
 pub fn handle_window_event(window: &tauri::Window, event: &tauri::WindowEvent) -> bool {
@@ -333,6 +359,7 @@ pub fn handle_window_event(window: &tauri::Window, event: &tauri::WindowEvent) -
             remember_geometry(window);
             api.prevent_close();
             let _ = window.hide();
+            crate::chatgpt_lifecycle::note_manual_overlay_hide(window.app_handle());
             remember_visibility(false);
             crate::tray_bridge::rebuild_tray_menu(window.app_handle());
         }

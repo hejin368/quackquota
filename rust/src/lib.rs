@@ -5,6 +5,7 @@
 
 pub mod agent_sessions;
 pub mod browser;
+pub mod chatgpt_desktop;
 pub mod cli;
 pub mod core;
 pub mod cost_scanner;

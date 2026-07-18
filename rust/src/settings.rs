@@ -71,6 +71,18 @@ pub struct Settings {
     #[serde(default)]
     pub codex_overlay_has_launched: bool,
 
+    /// Monitor the supported Windows ChatGPT desktop application lifecycle.
+    #[serde(default = "default_true")]
+    pub monitor_chatgpt_desktop: bool,
+
+    /// Show the overlay after a stable ChatGPT desktop start transition.
+    #[serde(default = "default_true")]
+    pub show_overlay_on_chatgpt_start: bool,
+
+    /// Hide the overlay after a stable ChatGPT desktop exit transition.
+    #[serde(default = "default_true")]
+    pub hide_overlay_on_chatgpt_exit: bool,
+
     /// Whether to show notifications
     pub show_notifications: bool,
 
@@ -396,6 +408,9 @@ impl Default for Settings {
             codex_overlay_startup_mode: CodexOverlayStartupMode::RememberLast,
             codex_overlay_last_visible: true,
             codex_overlay_has_launched: false,
+            monitor_chatgpt_desktop: true,
+            show_overlay_on_chatgpt_start: true,
+            hide_overlay_on_chatgpt_exit: true,
             show_notifications: true,
             sound_enabled: true,
             sound_volume: 100,

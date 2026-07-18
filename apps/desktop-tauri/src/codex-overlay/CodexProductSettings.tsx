@@ -5,10 +5,12 @@ import type { LocaleKey } from "../i18n/keys";
 import type { TabProps } from "../surfaces/Settings";
 import type { CodexOverlayStartupMode } from "../types/bridge";
 import type {
+  ChatGptDesktopStatus,
   CodexConnectionErrorKind,
   CodexProxySource,
   CodexProxyStatus,
 } from "./types";
+import { useChatGptLifecycle } from "./useChatGptLifecycle";
 import {
   getCodexProxyStatus,
   resetCodexOverlayPosition,
@@ -51,12 +53,30 @@ function isCodexProxyStatus(value: unknown): value is CodexProxyStatus {
   );
 }
 
+function lifecycleLocaleKey(status: ChatGptDesktopStatus): LocaleKey {
+  switch (status) {
+    case "running":
+      return "ChatGptLifecycleRunning";
+    case "not-running":
+      return "ChatGptLifecycleNotRunning";
+    case "detecting":
+      return "ChatGptLifecycleDetecting";
+    case "unsupported":
+      return "ChatGptLifecycleUnsupported";
+    case "monitoring-disabled":
+      return "ChatGptLifecycleInactive";
+    case "unavailable":
+      return "ChatGptLifecycleUnavailable";
+  }
+}
+
 export default function CodexProductSettings({
   settings,
   set,
   saving,
 }: TabProps) {
   const { t } = useLocale();
+  const lifecycle = useChatGptLifecycle();
   const [manualProxy, setManualProxy] = useState(
     settings.codexManualProxy ?? "",
   );
@@ -118,6 +138,7 @@ export default function CodexProductSettings({
     : t("CodexProxyRouteDirect");
 
   const startupMode = settings.codexOverlayStartupMode ?? "rememberLast";
+  const monitoringEnabled = settings.monitorChatgptDesktop ?? true;
   const startupOptions: Array<{
     value: CodexOverlayStartupMode;
     label: string;
@@ -180,6 +201,59 @@ export default function CodexProductSettings({
                 );
               })}
             </div>
+          </Field>
+          <Field
+            label={t("ChatGptMonitorDesktop")}
+            description={t("ChatGptMonitorDesktopHelper")}
+            leading
+            className="codex-settings-responsive-field"
+          >
+            <Toggle
+              checked={monitoringEnabled}
+              ariaLabel={t("ChatGptMonitorDesktop")}
+              disabled={saving}
+              onChange={(value) => void set({ monitorChatgptDesktop: value })}
+            />
+          </Field>
+          <Field
+            label={t("ChatGptShowOverlayOnStart")}
+            description={
+              !monitoringEnabled ? t("ChatGptLifecycleInactive") : undefined
+            }
+            leading
+            className="codex-settings-responsive-field"
+          >
+            <Toggle
+              checked={settings.showOverlayOnChatgptStart ?? true}
+              ariaLabel={t("ChatGptShowOverlayOnStart")}
+              disabled={saving}
+              onChange={(value) =>
+                void set({ showOverlayOnChatgptStart: value })
+              }
+            />
+          </Field>
+          <Field
+            label={t("ChatGptHideOverlayOnExit")}
+            description={
+              !monitoringEnabled ? t("ChatGptLifecycleInactive") : undefined
+            }
+            leading
+            className="codex-settings-responsive-field"
+          >
+            <Toggle
+              checked={settings.hideOverlayOnChatgptExit ?? true}
+              ariaLabel={t("ChatGptHideOverlayOnExit")}
+              disabled={saving}
+              onChange={(value) =>
+                void set({ hideOverlayOnChatgptExit: value })
+              }
+            />
+          </Field>
+          <Field
+            label={t("ChatGptDesktopLifecycle")}
+            className="codex-settings-responsive-field"
+          >
+            <span role="status">{t(lifecycleLocaleKey(lifecycle.status))}</span>
           </Field>
           <Field
             label={t("CodexOverlayResetPosition")}

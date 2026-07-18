@@ -1,5 +1,6 @@
 use super::*;
 use serde::{Deserialize, Deserializer};
+use serde_json::Value;
 
 fn deserialize_codex_overlay_startup_mode<'de, D>(
     deserializer: D,
@@ -12,6 +13,14 @@ where
         .as_deref()
         .and_then(CodexOverlayStartupMode::parse)
         .unwrap_or_default())
+}
+
+fn deserialize_default_true_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = Option::<Value>::deserialize(deserializer)?;
+    Ok(value.and_then(|value| value.as_bool()).unwrap_or(true))
 }
 
 /// Raw on-disk shape of [`Settings`] used purely for deserialization.
@@ -43,6 +52,21 @@ pub(super) struct RawSettings {
     codex_overlay_last_visible: bool,
     #[serde(default)]
     codex_overlay_has_launched: bool,
+    #[serde(
+        default = "default_true",
+        deserialize_with = "deserialize_default_true_bool"
+    )]
+    monitor_chatgpt_desktop: bool,
+    #[serde(
+        default = "default_true",
+        deserialize_with = "deserialize_default_true_bool"
+    )]
+    show_overlay_on_chatgpt_start: bool,
+    #[serde(
+        default = "default_true",
+        deserialize_with = "deserialize_default_true_bool"
+    )]
+    hide_overlay_on_chatgpt_exit: bool,
     show_notifications: bool,
     sound_enabled: bool,
     sound_volume: u8,
@@ -183,6 +207,9 @@ impl Default for RawSettings {
             codex_overlay_startup_mode: s.codex_overlay_startup_mode,
             codex_overlay_last_visible: s.codex_overlay_last_visible,
             codex_overlay_has_launched: s.codex_overlay_has_launched,
+            monitor_chatgpt_desktop: s.monitor_chatgpt_desktop,
+            show_overlay_on_chatgpt_start: s.show_overlay_on_chatgpt_start,
+            hide_overlay_on_chatgpt_exit: s.hide_overlay_on_chatgpt_exit,
             show_notifications: s.show_notifications,
             sound_enabled: s.sound_enabled,
             sound_volume: s.sound_volume,
@@ -478,6 +505,9 @@ impl From<RawSettings> for Settings {
             codex_overlay_startup_mode: raw.codex_overlay_startup_mode,
             codex_overlay_last_visible: raw.codex_overlay_last_visible,
             codex_overlay_has_launched: raw.codex_overlay_has_launched,
+            monitor_chatgpt_desktop: raw.monitor_chatgpt_desktop,
+            show_overlay_on_chatgpt_start: raw.show_overlay_on_chatgpt_start,
+            hide_overlay_on_chatgpt_exit: raw.hide_overlay_on_chatgpt_exit,
             show_notifications: raw.show_notifications,
             sound_enabled: raw.sound_enabled,
             sound_volume: raw.sound_volume,
