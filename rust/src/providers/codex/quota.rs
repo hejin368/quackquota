@@ -28,7 +28,7 @@ const APP_SERVER_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(1);
 
 static QUOTA_CACHE: OnceLock<Mutex<Option<CodexQuotaSnapshot>>> = OnceLock::new();
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum CodexQuotaStatus {
     Ready,
@@ -40,7 +40,7 @@ pub enum CodexQuotaStatus {
     InvalidData,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum CodexQuotaSource {
     AppServer,
@@ -48,14 +48,14 @@ pub enum CodexQuotaSource {
     Cache,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum CodexRateLimitLevel {
     Primary,
     Secondary,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CodexRateLimitWindow {
     pub id: String,
@@ -73,7 +73,7 @@ pub struct CodexRateLimitWindow {
     pub level: CodexRateLimitLevel,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CodexResetCredits {
     pub available_count: u32,

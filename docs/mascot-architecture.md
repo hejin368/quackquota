@@ -20,6 +20,16 @@ and `offline` remain the planned stable states. A pure state-mapping function
 will own thresholds and reset-transition detection; it must compare stable
 window IDs rather than array positions.
 
+## Future lifecycle input
+
+The current Windows lifecycle watcher exposes only a coarse local desktop-app
+state (`running`, `not-running`, unavailable, or unsupported). A future mascot
+mapper may consume that state together with quota data, but the watcher must
+remain independent of mascot assets, names, animations, and interactions.
+For example, `not-running` could select a later offline or resting visual; it
+must not turn a quota refresh failure into a different provider state. No
+mascot UI is implemented by this lifecycle foundation.
+
 ## Future local mascot profile
 
 When a static mascot surface exists, it may introduce a separate local profile:

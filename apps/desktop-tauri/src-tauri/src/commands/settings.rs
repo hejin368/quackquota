@@ -15,6 +15,9 @@ pub struct SettingsUpdate {
     pub codex_proxy_use_environment: Option<bool>,
     pub codex_manual_proxy: Option<String>,
     pub codex_overlay_startup_mode: Option<String>,
+    pub monitor_chatgpt_desktop: Option<bool>,
+    pub show_overlay_on_chatgpt_start: Option<bool>,
+    pub hide_overlay_on_chatgpt_exit: Option<bool>,
     pub show_notifications: Option<bool>,
     pub sound_enabled: Option<bool>,
     pub sound_volume: Option<u8>,
@@ -163,6 +166,15 @@ impl SettingsUpdate {
             .and_then(codexbar::settings::CodexOverlayStartupMode::parse)
         {
             settings.codex_overlay_startup_mode = v;
+        }
+        if let Some(v) = self.monitor_chatgpt_desktop {
+            settings.monitor_chatgpt_desktop = v;
+        }
+        if let Some(v) = self.show_overlay_on_chatgpt_start {
+            settings.show_overlay_on_chatgpt_start = v;
+        }
+        if let Some(v) = self.hide_overlay_on_chatgpt_exit {
+            settings.hide_overlay_on_chatgpt_exit = v;
         }
         if let Some(v) = self.global_shortcut.clone() {
             settings.global_shortcut = v;
@@ -389,6 +401,7 @@ pub async fn update_settings(
     }
 
     settings.save().map_err(|e| e.to_string())?;
+    crate::chatgpt_lifecycle::update_preferences(&app, &settings);
     if clear_local_usage_cache {
         crate::commands::clear_provider_local_usage_cache();
     }

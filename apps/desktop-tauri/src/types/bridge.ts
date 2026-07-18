@@ -222,6 +222,9 @@ export interface SettingsSnapshot {
   codexProxyUseEnvironment?: boolean;
   codexManualProxy?: string;
   codexOverlayStartupMode?: CodexOverlayStartupMode;
+  monitorChatgptDesktop?: boolean;
+  showOverlayOnChatgptStart?: boolean;
+  hideOverlayOnChatgptExit?: boolean;
   showNotifications: boolean;
   soundEnabled: boolean;
   soundVolume: number;
@@ -290,6 +293,9 @@ export interface SettingsUpdate {
   codexProxyUseEnvironment?: boolean;
   codexManualProxy?: string;
   codexOverlayStartupMode?: CodexOverlayStartupMode;
+  monitorChatgptDesktop?: boolean;
+  showOverlayOnChatgptStart?: boolean;
+  hideOverlayOnChatgptExit?: boolean;
   showNotifications?: boolean;
   soundEnabled?: boolean;
   soundVolume?: number;

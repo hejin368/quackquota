@@ -146,3 +146,20 @@ content.
   account. The non-public Legacy usage endpoint remains a compatibility-only
   fallback and therefore remains an interface-change risk.
 - No real endpoint or credential is written into this review document.
+
+## Windows lifecycle watcher and local quota cache
+
+The lifecycle watcher is local to Windows and recognizes the supported ChatGPT
+desktop package by Windows package/process/window metadata. It does not inspect
+browser windows, web tabs, page titles, chat content, command lines, or
+authentication files. The frontend receives only a small lifecycle-status enum;
+it receives no package path, PID, package version, window title, or process
+metadata.
+
+The disk cache contains only the last successful displayable quota snapshot:
+plan label, normalized quota windows, reset-credit count, source label, and
+timestamp. It contains no provider response body, proxy address, credential,
+account identifier, or error detail. Cache writes use a temporary file then a
+replace operation; corrupt or unknown schema versions are ignored safely. A
+failed refresh never replaces a prior successful cache, and the frontend labels
+any cache fallback rather than representing it as live data.

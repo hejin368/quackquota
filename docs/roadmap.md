@@ -7,6 +7,10 @@ This roadmap is not a schedule or delivery-date commitment.
 - Installation and release workflow.
 - Alpha compatibility validation.
 - Further UI convergence.
+- Continue Alpha compatibility validation for the local Windows ChatGPT desktop
+  lifecycle foundation, including
+  lifecycle-triggered Overlay visibility, last-successful quota cache, and the
+  three independent local controls. It does not monitor browsers or web tabs.
 - A basic static mascot placeholder only after a reviewable asset exists.
 
 ## v0.2 mascot and local personalization

@@ -67,6 +67,23 @@ body.codex-overlay-window #root {
   font-weight: 600;
 }
 
+.codex-overlay__lifecycle {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 16px;
+  padding: 3px 6px;
+  color: #a8bbd1;
+  background: rgba(92, 129, 177, 0.12);
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.codex-overlay__lifecycle span:last-child {
+  color: #bcd4f2;
+  text-align: right;
+}
+
 .codex-overlay__actions {
   gap: 4px;
 }

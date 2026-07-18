@@ -285,3 +285,32 @@ before a broader Alpha release:
 - Installer, upgrade, and uninstall flows.
 - Long-running and sleep/resume behavior.
 - Code-signing and security-software compatibility.
+
+## ChatGPT desktop lifecycle and quota-cache acceptance
+
+This matrix covers only the Windows ChatGPT desktop package. Do not test or
+record browser tabs, page titles, chat content, command lines, account data,
+installation paths, raw PIDs, credentials, or real proxy endpoints.
+
+- [ ] With monitoring enabled, close the visible ChatGPT desktop main window;
+  after the close grace period, QuackQuota reports it as not running and hides
+  the Overlay only when the corresponding auto-hide option is enabled.
+- [ ] Start ChatGPT again from Windows; after stable samples, QuackQuota
+  reports it as running and shows the existing Overlay only when the
+  corresponding auto-show option is enabled. It must not create a duplicate.
+- [ ] Toggle each independently persisted setting: monitor desktop app,
+  auto-show on start, and auto-hide on exit. Restart QuackQuota and confirm
+  the selected values remain intact. Turning monitoring off must preserve the
+  other two values while making them inactive.
+- [ ] Hide the Overlay manually while ChatGPT remains running. It must stay
+  hidden until a later complete close-and-start cycle, unless opened manually
+  from the tray.
+- [ ] Confirm the watcher does not react to browser-based ChatGPT, standalone
+  Codex CLI, or App Server helper processes.
+- [ ] After one successful quota refresh, disconnect the network or make the
+  Codex path unavailable. The Overlay may show the last successful quota
+  snapshot only when explicitly labelled cached; it must never present it as
+  live data. Restart QuackQuota and repeat the fallback check.
+- [ ] Corrupt or remove only a disposable test cache configuration, then
+  start QuackQuota. The app must remain usable and must not leave the Overlay
+  permanently hidden.

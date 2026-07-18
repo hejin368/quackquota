@@ -2,7 +2,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "../i18n/LocaleProvider";
 import { buildBundle } from "../test/localeHarness";
-import type { CodexQuotaSnapshot, CodexRateLimitWindow } from "./types";
+import type {
+  ChatGptDesktopSnapshot,
+  CodexQuotaSnapshot,
+  CodexRateLimitWindow,
+} from "./types";
 
 const tauriMocks = vi.hoisted(() => ({
   getLocaleStrings: vi.fn(),
@@ -51,7 +55,11 @@ function snapshot(
   };
 }
 
-function renderOverlay(value: CodexQuotaSnapshot | null, refreshing = false) {
+function renderOverlay(
+  value: CodexQuotaSnapshot | null,
+  refreshing = false,
+  lifecycle?: ChatGptDesktopSnapshot,
+) {
   return render(
     <LocaleProvider>
       <CodexOverlayView
@@ -59,6 +67,7 @@ function renderOverlay(value: CodexQuotaSnapshot | null, refreshing = false) {
         isRefreshing={refreshing}
         onRefresh={() => {}}
         onClose={() => {}}
+        lifecycle={lifecycle}
       />
     </LocaleProvider>,
   );
@@ -95,6 +104,10 @@ describe("CodexOverlayView", () => {
         StatusUnableToGetUsage: "Unable to get usage",
         ActionRefresh: "Refresh",
         ActionClose: "Close",
+        ChatGptLifecycleNotRunning: "ChatGPT desktop app is not running",
+        ChatGptLifecycleUnsupported: "ChatGPT desktop app is unsupported",
+        ChatGptLifecycleUnavailable: "ChatGPT lifecycle status unavailable",
+        CodexOverlayShowingLastSuccess: "Showing last successful quota data",
       }),
     );
   });
@@ -188,5 +201,47 @@ describe("CodexOverlayView", () => {
       </LocaleProvider>,
     );
     expect(await screen.findByText("Cached data")).toBeInTheDocument();
+  });
+
+  it("labels lifecycle status and disk-cache fallback without presenting it as live", async () => {
+    renderOverlay(
+      snapshot([quotaWindow("codex:primary", 24, 10_080)], {
+        status: "cached",
+        source: "cache",
+      }),
+      false,
+      { status: "not-running" },
+    );
+
+    await screen.findByText("ChatGPT desktop app is not running");
+    expect(
+      screen.getByText("Showing last successful quota data"),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps unsupported and temporarily unavailable lifecycle states distinct", async () => {
+    const { rerender } = renderOverlay(
+      snapshot([quotaWindow("codex:primary", 24, 10_080)]),
+      false,
+      { status: "unsupported" },
+    );
+    expect(
+      await screen.findByText("ChatGPT desktop app is unsupported"),
+    ).toBeInTheDocument();
+
+    rerender(
+      <LocaleProvider>
+        <CodexOverlayView
+          snapshot={snapshot([quotaWindow("codex:primary", 24, 10_080)])}
+          isRefreshing={false}
+          onRefresh={() => {}}
+          onClose={() => {}}
+          lifecycle={{ status: "unavailable" }}
+        />
+      </LocaleProvider>,
+    );
+    expect(
+      await screen.findByText("ChatGPT lifecycle status unavailable"),
+    ).toBeInTheDocument();
   });
 });

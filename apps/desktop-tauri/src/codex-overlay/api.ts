@@ -3,6 +3,8 @@ import type {
   CodexProxyStatus,
   CodexProxyTestResult,
   CodexQuotaSnapshot,
+  ChatGptDesktopSnapshot,
+  LifecycleFrontendDiagnostic,
 } from "./types";
 
 /** Window label shared by App routing and the detached overlay feature. */
@@ -27,4 +29,20 @@ export function getCodexProxyStatus(): Promise<CodexProxyStatus> {
 
 export function testCodexProxyConnection(): Promise<CodexProxyTestResult> {
   return invoke<CodexProxyTestResult>("test_codex_proxy_connection");
+}
+
+export function getChatGptLifecycleStatus(): Promise<ChatGptDesktopSnapshot> {
+  return invoke<ChatGptDesktopSnapshot>("get_chatgpt_lifecycle_status");
+}
+
+export function lifecycleDiagnosticsEnabled(): Promise<boolean> {
+  return invoke<boolean>("chatgpt_lifecycle_diagnostics_enabled");
+}
+
+export function recordChatGptLifecycleFrontendDiagnostic(
+  input: LifecycleFrontendDiagnostic,
+): Promise<void> {
+  return invoke<void>("record_chatgpt_lifecycle_frontend_diagnostic", {
+    input,
+  });
 }

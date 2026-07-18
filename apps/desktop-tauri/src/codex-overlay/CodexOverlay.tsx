@@ -11,10 +11,12 @@ import {
   type CodexQuotaSnapshot,
   type CodexQuotaSource,
   type CodexRateLimitWindow,
+  type ChatGptDesktopSnapshot,
 } from "./types";
 import { useCodexUsage } from "./useCodexUsage";
 import { hideCodexOverlay } from "./api";
 import { connectionErrorLocaleKey } from "./errors";
+import { useChatGptLifecycle } from "./useChatGptLifecycle";
 import "./CodexOverlay.css";
 
 function formatPercent(value: number): string {
@@ -137,18 +139,44 @@ function EmptyState({
   );
 }
 
+function LifecycleBanner({
+  lifecycle = { status: "unavailable" },
+  cached,
+}: {
+  lifecycle?: ChatGptDesktopSnapshot;
+  cached: boolean;
+}) {
+  const { t } = useLocale();
+  const statusKey = {
+    "monitoring-disabled": "ChatGptLifecycleInactive",
+    detecting: "ChatGptLifecycleDetecting",
+    running: "ChatGptLifecycleRunning",
+    "not-running": "ChatGptLifecycleNotRunning",
+    unsupported: "ChatGptLifecycleUnsupported",
+    unavailable: "ChatGptLifecycleUnavailable",
+  } as const;
+  return (
+    <div className="codex-overlay__lifecycle" role="status" aria-live="polite">
+      <span>{t(statusKey[lifecycle.status])}</span>
+      {cached && <span>{t("CodexOverlayShowingLastSuccess")}</span>}
+    </div>
+  );
+}
+
 export function CodexOverlayView({
   snapshot,
   isRefreshing,
   onRefresh,
   onClose,
   onStartDragging,
+  lifecycle = { status: "unavailable" },
 }: {
   snapshot: CodexQuotaSnapshot | null;
   isRefreshing: boolean;
   onRefresh: () => void;
   onClose: () => void;
   onStartDragging?: (event: MouseEvent<HTMLElement>) => void;
+  lifecycle?: ChatGptDesktopSnapshot;
 }) {
   const { t, language } = useLocale();
   const visible = selectVisibleCodexQuotaWindows(snapshot?.windows ?? []);
@@ -202,6 +230,11 @@ export function CodexOverlayView({
           </button>
         </div>
       </header>
+
+      <LifecycleBanner
+        lifecycle={lifecycle}
+        cached={snapshot?.status === "cached"}
+      />
 
       {hasUsage ? (
         <>
@@ -259,6 +292,7 @@ export function CodexOverlayView({
 
 export default function CodexOverlay() {
   const { snapshot, isRefreshing, refresh } = useCodexUsage();
+  const lifecycle = useChatGptLifecycle();
 
   useEffect(() => {
     document.body.classList.add("codex-overlay-window");
@@ -286,6 +320,7 @@ export default function CodexOverlay() {
         onRefresh={() => void refresh()}
         onClose={close}
         onStartDragging={startDragging}
+        lifecycle={lifecycle}
       />
     </div>
   );
