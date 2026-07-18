@@ -22,12 +22,13 @@ jobs:
         working-directory: apps/desktop-tauri
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
           cache-dependency-path: apps/desktop-tauri/pnpm-lock.yaml
-      - run: corepack enable
-      - run: corepack prepare pnpm@10.18.1 --activate
       - run: pnpm install --frozen-lockfile
       - run: pnpm run format:check
