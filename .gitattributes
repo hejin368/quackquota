@@ -3,3 +3,8 @@
 Sources/** linguist-vendored
 Tests/** linguist-vendored
 Package.swift linguist-vendored
+
+# Keep the files checked by the desktop Prettier script LF on every platform.
+apps/desktop-tauri/src/codex-overlay/**/*.ts text eol=lf
+apps/desktop-tauri/src/codex-overlay/**/*.tsx text eol=lf
+apps/desktop-tauri/src/codex-overlay/**/*.css text eol=lf
