@@ -74,4 +74,4 @@ pnpm --dir "$DESKTOP_DIR" exec tauri build \
 
 echo
 echo "Built Windows app:"
-echo "  $ROOT_DIR/target/$TARGET/release/codexbar-desktop-tauri.exe"
+echo "  $ROOT_DIR/target/$TARGET/release/QuackQuota.exe"

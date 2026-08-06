@@ -18,7 +18,7 @@ cd ../..
 pnpm --dir apps/desktop-tauri run tauri:build
 ```
 
-The release binary lands at `target/release/codexbar-desktop-tauri.exe`.
+The release binary lands at `target/release/QuackQuota.exe`.
 
 For a debug build (faster compile, no optimisations):
 ```powershell
@@ -90,7 +90,7 @@ pnpm --dir apps/desktop-tauri run tauri:build:windows-cross
 ```
 
 This uses `cargo-xwin` plus Homebrew `llvm`/`lld` to build the Windows MSVC
-Tauri executable at `target/x86_64-pc-windows-msvc/release/codexbar-desktop-tauri.exe`.
+Tauri executable at `target/x86_64-pc-windows-msvc/release/QuackQuota.exe`.
 It is useful for catching frontend, Tauri, and Windows-target Rust compile
 failures from a Mac. It does not replace the Windows server release path:
 installer packaging, tray behavior, WebView2, DPAPI, startup integration, and
@@ -134,3 +134,11 @@ cd apps/desktop-tauri && pnpm exec tsc --noEmit
 cargo clippy --all-targets -- -D warnings
 cargo fmt --all --check
 ```
+
+## Alpha 1A state
+
+- Desktop binary: `target/release/QuackQuota.exe`
+- CLI binary (unchanged): `target/release/codexbar.exe`
+- Tauri identifier (unchanged): `com.codexbar.desktop`
+- Not implemented yet: identifier migration, application-data migration,
+  auto-start, silent tray start, install/upgrade/uninstall, public release.

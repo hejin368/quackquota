@@ -46,8 +46,9 @@
 - Add or extend focused Rust tests near the changed module (`#[cfg(test)]` unit tests are common in this repo).
 - For parser/fetcher changes, add deterministic samples/fixtures where practical.
 - Run `cargo test` after code changes; include any skipped checks in handoff.
-- If desktop/tray behavior changed, do a manual validation with the Tauri shell when possible (`cargo run` or
-  `codexbar-desktop-tauri`).
+- If desktop/tray behavior changed, do a manual validation with the Tauri shell when possible (use
+  `scripts/dev.ps1` or `scripts/dev.sh`; the Windows binary is `QuackQuota.exe`, the Unix binary is
+  `QuackQuota`).
 
 ## Commit & PR Guidelines
 - Use short imperative commit messages (for example: `Fix Claude CLI parser`, `Improve cookie import errors`).

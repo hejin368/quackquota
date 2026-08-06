@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build and run the CodexBar Tauri desktop shell on Linux / WSL.
+# Build and run the QuackQuota Tauri desktop shell on Linux / WSL.
 #
 # Usage:
 #   ./scripts/dev.sh                 # debug build + run
@@ -128,10 +128,10 @@ if [ "$SKIP_BUILD" -eq 0 ]; then
     else
         cd "$TAURI_APP_DIR"
         if [ "$RELEASE" -eq 1 ]; then
-            echo "Building CodexBar Desktop (release, no bundle)..."
+            echo "Building QuackQuota Desktop (release, no bundle)..."
             pnpm run tauri:build
         else
-            echo "Building CodexBar Desktop (debug, no bundle)..."
+            echo "Building QuackQuota Desktop (debug, no bundle)..."
             pnpm run tauri:build:debug
         fi
         cd "$REPO_ROOT"
@@ -146,7 +146,7 @@ PROFILE="debug"
 if [ "$CLI_MODE" -eq 1 ]; then
     BINARY_NAME="codexbar"
 else
-    BINARY_NAME="codexbar-desktop-tauri"
+    BINARY_NAME="QuackQuota"
 fi
 
 if ! BINARY="$(find_binary "$BINARY_NAME" "$PROFILE")"; then
@@ -162,7 +162,7 @@ if [ "$CLI_MODE" -eq 1 ]; then
     echo "Running: codexbar usage -p all"
     RUN_ARGS=(usage -p all)
 else
-    echo "Running: CodexBar Desktop"
+    echo "Running: QuackQuota Desktop"
 fi
 
 if [ "$VERBOSE" -eq 1 ]; then

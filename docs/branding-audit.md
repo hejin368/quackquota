@@ -30,9 +30,9 @@ the public repository. No public release or installer exists yet.
 
 | Retained item | Reason and later migration point |
 |---|---|
-| Rust crate/bin `codexbar` and Tauri package `codexbar-desktop-tauri` | Changing them can affect build scripts, dependent code, and installed executable compatibility; review for a versioned migration. |
+| Rust crate/bin `codexbar` and Tauri package `codexbar-desktop-tauri` | Changing them can affect build scripts, dependent code, and installed executable compatibility; review for a versioned migration. Alpha 1A added an explicit `[[bin]]` target named `QuackQuota` while preserving the package name. |
 | Tauri identifier `com.codexbar.desktop` | It scopes Windows application data and cache identity; keep it to avoid losing existing local settings. |
-| Executable names including `codexbar-desktop-tauri.exe` | Keep current debug/build and integration paths stable; rename only with installer, upgrade, shortcut, and migration coverage. |
+| Executable names including `codexbar-desktop-tauri.exe` | `codexbar-desktop-tauri.exe` was the historical bare-build name. Since Alpha 1A the authoritative Windows bare-build output is `QuackQuota.exe`. The release pipeline still creates `codexbar.exe` and `codexbar-desktop.exe` from `QuackQuota.exe` as temporary installer compatibility copies; full installer brand migration, upgrade, and uninstall are not yet implemented. |
 | Window labels, tray ID, commands, events, modules, log targets, Keychain targets, and `CODEXBAR_*` environment variables | Internal lookup, storage, automation, and compatibility identifiers; do not rename without explicit migration design. |
 | Existing local settings and application-data paths | Preserve existing settings, proxy policy, geometry, and startup preferences. |
 | Windows toast AUMID `CodexBar` and its registry key | Changing an AUMID changes notification identity and can leave stale registrations. The user-facing toast display name is now `QuackQuota`; migrate the AUMID only with installer and notification migration coverage. |
@@ -72,3 +72,20 @@ verification for the scoped baseline is complete.
 
 No release, installer, updater, or mascot implementation is claimed by this
 repository-launch audit.
+
+## Alpha 1A: executable identity baseline
+
+The desktop Tauri package now defines an explicit `[[bin]]` target named
+`QuackQuota` in `apps/desktop-tauri/src-tauri/Cargo.toml`.  A `cargo build
+--release` (either directly or through `tauri:build`) produces
+`target/release/QuackQuota.exe` as the sole authoritative desktop binary.
+
+- The Cargo package name remains `codexbar-desktop-tauri` (no crate-name
+  migration).
+- The Tauri identifier `com.codexbar.desktop` is unchanged.
+- The release pipeline still creates `codexbar.exe` and
+  `codexbar-desktop.exe` as temporary installer compatibility copies from
+  `QuackQuota.exe`.  These are not authoritative desktop names.
+- The CLI binary remains `codexbar.exe`.
+- Installer branding, application-data migration, identifier migration,
+  auto-start, and silent-tray-start are not implemented in this round.

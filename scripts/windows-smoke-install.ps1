@@ -49,7 +49,7 @@ if ($signature.Status -eq "Valid") {
     Write-Step "installer signature: $($signature.Status)"
 }
 
-foreach ($name in @("codexbar", "codexbar-desktop", "codexbar-desktop-tauri")) {
+foreach ($name in @("codexbar", "codexbar-desktop", "codexbar-desktop-tauri", "QuackQuota")) {
     Get-Process -Name $name -ErrorAction SilentlyContinue | Stop-Process -Force
 }
 

@@ -290,7 +290,7 @@ try {
     } else {
         Join-Path $DesktopCargoTargetDir "release"
     }
-    $sourceExe = Join-Path $releaseBinDir "codexbar-desktop-tauri.exe"
+    $sourceExe = Join-Path $releaseBinDir "QuackQuota.exe"
     if ($null -eq $process.ExitCode) {
         if (Test-Path $sourceExe) {
             Write-Host "Warning: Tauri build did not report an exit code, but produced $sourceExe."
@@ -328,6 +328,9 @@ try {
 
     Copy-Item $sourceExe $desktopExe -Force
     Copy-Item $sourceExe $legacyDesktopExe -Force
+    # codexbar.exe and codexbar-desktop.exe above are temporary installer
+    # compatibility copies.  The sole authoritative desktop binary is
+    # QuackQuota.exe.
     if (Get-ObjdumpImportsWebView2Loader -ExePath $desktopExe) {
         throw "codexbar.exe imports WebView2Loader.dll, but release builds are expected to statically link the loader."
     }

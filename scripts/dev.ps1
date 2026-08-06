@@ -35,7 +35,7 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $TauriFrontendDir = Join-Path $RepoRoot "apps\desktop-tauri"
 $TargetDir = Join-Path $RepoRoot "target"
-$DesktopBinaryName = "codexbar-desktop-tauri.exe"
+$DesktopBinaryName = "QuackQuota.exe"
 
 function Get-RustHostTriple {
     if (-not (Get-Command rustc -ErrorAction SilentlyContinue)) {

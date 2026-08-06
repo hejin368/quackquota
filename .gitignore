@@ -106,6 +106,7 @@ check_windows.ps1
 
 # Stray Windows binaries (artifacts of cargo build, not source)
 codexbar.exe
+QuackQuota.exe
 codexbar-desktop-tauri.exe
 /*.exe
 

@@ -8,3 +8,6 @@ Package.swift linguist-vendored
 apps/desktop-tauri/src/codex-overlay/**/*.ts text eol=lf
 apps/desktop-tauri/src/codex-overlay/**/*.tsx text eol=lf
 apps/desktop-tauri/src/codex-overlay/**/*.css text eol=lf
+
+scripts/dev.sh text eol=lf
+scripts/macos-windows-cross-build.sh text eol=lf

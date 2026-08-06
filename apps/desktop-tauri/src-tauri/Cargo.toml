@@ -22,3 +22,7 @@ uuid = { version = "1", features = ["v4"] }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.55"
+
+[[bin]]
+name = "QuackQuota"
+path = "src/main.rs"

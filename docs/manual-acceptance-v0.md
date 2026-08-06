@@ -27,7 +27,7 @@
 - [ ] Codex CLI 版本（若已安装）：`________________`
 - [ ] 显示器数量、分辨率和缩放：`________________`
 - [ ] 通过 `scripts/dev.ps1` 或 Tauri debug 构建启动，未直接运行指向 Vite dev URL 的裸 Cargo 构建。
-- [ ] 测试前确认没有旧的 QuackQuota 进程残留；若需按内部可执行名检查，使用 `codexbar-desktop-tauri.exe`。
+- [ ] 测试前确认没有旧的 QuackQuota 进程残留；若需按内部可执行名检查，使用 `QuackQuota.exe`；旧构建可能仍有 `codexbar-desktop-tauri.exe` 残留。
 
 ## A. 安装与认证矩阵
 
