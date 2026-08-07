@@ -70,6 +70,8 @@ nul
 !/docs/roadmap.md
 !/docs/project-status.md
 !/docs/branding-audit.md
+!/docs/REVIEW-WORKFLOW.md
+!/docs/templates/
 /scripts/*
 /docs/ui-parity-workflow.md
 /scripts/crop_vm_preferences_proof.sh

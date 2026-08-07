@@ -83,3 +83,27 @@
 - Cookie import UX uses explicit browser selection in Preferences. Do not assume Chrome-only in general UI flows.
 - Be conservative with secret handling (manual cookies, API keys, token accounts); use existing redaction/storage helpers.
 - Prefer Windows-native validation for tray/DPAPI/browser-cookie behavior; WSL/Linux can be insufficient for those paths.
+
+## Review Pack Workflow
+- After every development task, DeepSeek/independent agents must produce a standard
+  `QuackQuota-<TaskName>-Review.zip` via `scripts/create-review-pack.ps1`. The ZIP is the sole
+  review artifact; text summaries are not a substitute.
+- The reviewer (GPT-5.6 or human) only needs to receive and inspect that single ZIP file.
+- Review ZIPs and raw test logs must be stored outside the repository. They are never committed
+  to Git and never uploaded to GitHub Releases.
+- During development, use targeted/focused tests on the changed module. Run the full
+  contract-required test suite only on the final candidate commit before packaging.
+- Manual acceptance (running the app, visual checks) remains the human reviewer's
+  responsibility and cannot be delegated to an agent.
+- See `docs/REVIEW-WORKFLOW.md` for the complete process.
+
+## Workspace Path Enforcement (BLOCK-1)
+- Before starting any task, the agent must verify BOTH:
+  1. Current process working directory (`Get-Location` / `pwd`) equals the contract-specified
+     repository path.
+  2. `git rev-parse --show-toplevel` from the current directory returns the same path.
+- Even if SHA and branch match, a path mismatch means the agent is in the wrong worktree;
+  the agent must STOP immediately — do not fix, do not switch directories, do not proceed.
+- Agents are strictly forbidden from using `git -C <path>` or `Set-Location` to bypass the
+  contract repository and operate in a different worktree.
+- `create-review-pack.ps1` enforces this check at the script level.
